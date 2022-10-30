@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Minimalist.Reactive", "Minimalist.Reactive\Minimalist.Reactive.csproj", "{54B5A4F9-4137-4B51-95F7-B4B0853860E6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Minimalist.Reactive.Tests", "Minimalist.Reactive.Tests\Minimalist.Reactive.Tests.csproj", "{097600C5-AE46-47B7-A62E-8EF082D98CA1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionConfig", "SolutionConfig", "{0A4E44CC-D871-4B01-8F1C-CAC47FF04981}"
+	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
+		..\.gitattributes = ..\.gitattributes
+		..\.gitignore = ..\.gitignore
+		..\.github\workflows\ci-build.yml = ..\.github\workflows\ci-build.yml
+		Directory.Build.props = Directory.Build.props
+		Directory.build.targets = Directory.build.targets
+		..\LICENSE = ..\LICENSE
+		..\README.md = ..\README.md
+		..\.github\workflows\release.yml = ..\.github\workflows\release.yml
+		stylecop.json = stylecop.json
+		..\version.json = ..\version.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{54B5A4F9-4137-4B51-95F7-B4B0853860E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54B5A4F9-4137-4B51-95F7-B4B0853860E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54B5A4F9-4137-4B51-95F7-B4B0853860E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54B5A4F9-4137-4B51-95F7-B4B0853860E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{097600C5-AE46-47B7-A62E-8EF082D98CA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{097600C5-AE46-47B7-A62E-8EF082D98CA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{097600C5-AE46-47B7-A62E-8EF082D98CA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{097600C5-AE46-47B7-A62E-8EF082D98CA1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5875E315-8013-4210-84B1-85C63B7990F7}
+	EndGlobalSection
+EndGlobal
