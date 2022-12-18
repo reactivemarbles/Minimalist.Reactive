@@ -24,7 +24,6 @@ jobs:
         vs where release
         
     - name: Update Visual Studio Latest Release
-      if: inputs.useVisualStudioPreview == true
       shell: bash
       run: |
         echo "## Update RELEASE ##"
@@ -46,7 +45,6 @@ jobs:
         dotnet-version: |
             6.0.x
             7.0.x
-        dotnet-quality: 'preview'
 
     - name: NBGV
       id: nbgv
