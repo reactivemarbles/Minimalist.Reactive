@@ -62,7 +62,7 @@ public sealed class TaskPoolScheduler : IScheduler
              }
              catch (Exception ex)
              {
-                 var thread = new Thread(() => throw ex.Rethrow());
+                 var thread = new Thread(() => ex.Rethrow());
                  thread.Start();
                  thread.Join();
                  return Disposable.Empty;

@@ -14,7 +14,7 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     where TAbsolute : IComparable<TAbsolute>
 {
     private readonly IComparer<TAbsolute> _comparer;
-    private SingleDisposable _disposable;
+    private SingleDisposable? _disposable;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScheduledItem{TAbsolute}"/> class.
@@ -38,7 +38,7 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// <summary>
     /// Gets a value indicating whether gets whether the work item has received a cancellation request.
     /// </summary>
-    public bool IsDisposed => _disposable.IsDisposed;
+    public bool IsDisposed => _disposable?.IsDisposed == true;
 
     /// <summary>
     /// Determines whether two specified <see cref="ScheduledItem{TAbsolute, TValue}" /> objects are inequal.
@@ -97,7 +97,7 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// <summary>
     /// Cancels the work item by disposing the resource returned by <see cref="InvokeCore"/> as soon as possible.
     /// </summary>
-    public void Cancel() => _disposable.Dispose();
+    public void Cancel() => _disposable?.Dispose();
 
     /// <summary>
     /// Compares the work item with another work item based on absolute time values.
@@ -121,7 +121,6 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// </summary>
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
@@ -144,7 +143,7 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// </summary>
     public void Invoke()
     {
-        if (!_disposable.IsDisposed)
+        if (_disposable?.IsDisposed == false)
         {
             _disposable = InvokeCore().DisposeWith();
         }
@@ -156,12 +155,9 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposable.IsDisposed)
+        if (_disposable?.IsDisposed == false && disposing)
         {
-            if (disposing)
-            {
-                _disposable.Dispose();
-            }
+            _disposable.Dispose();
         }
     }
 

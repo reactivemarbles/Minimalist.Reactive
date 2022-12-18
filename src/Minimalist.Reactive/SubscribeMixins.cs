@@ -67,6 +67,11 @@ public static class SubscribeMixins
     /// Rethrows Exception.
     /// </summary>
     /// <param name="exception">The exception.</param>
-    /// <returns>An Exception.</returns>
-    public static Exception Rethrow(this Exception exception) => exception;
+    public static void Rethrow(this Exception? exception)
+    {
+        if (exception != null)
+        {
+            throw exception;
+        }
+    }
 }

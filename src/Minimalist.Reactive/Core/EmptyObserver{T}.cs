@@ -2,15 +2,15 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
 using System.Runtime.ExceptionServices;
 
 namespace Minimalist.Reactive.Core;
-
 internal class EmptyObserver<T> : IObserver<T>
 {
+    public static readonly EmptyObserver<T> Instance = new(_ => { });
     private static readonly Action<Exception> rethrow = e => ExceptionDispatchInfo.Capture(e).Throw();
     private static readonly Action nop = () => { };
+    private static readonly Action<Exception> nope = _ => { };
 
     private readonly Action<T> _onNext;
     private readonly Action<Exception> _onError;
@@ -41,12 +41,12 @@ internal class EmptyObserver<T> : IObserver<T>
     /// <summary>
     /// Calls the action implementing <see cref="IObserver{T}.OnCompleted()"/>.
     /// </summary>
-    public void OnCompleted() => _onCompleted();
+    public void OnCompleted() => (_onCompleted ?? nop)();
 
     /// <summary>
     /// Calls the action implementing <see cref="IObserver{T}.OnError(Exception)"/>.
     /// </summary>
-    public void OnError(Exception error) => _onError(error);
+    public void OnError(Exception error) => (_onError ?? nope)(error);
 
     /// <summary>
     /// Calls the action implementing <see cref="IObserver{T}.OnNext(T)"/>.
