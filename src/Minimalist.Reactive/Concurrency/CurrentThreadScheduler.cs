@@ -13,7 +13,7 @@ namespace Minimalist.Reactive.Concurrency;
 /// <seealso cref="Minimalist.Reactive.Concurrency.IScheduler" />
 public sealed class CurrentThreadScheduler : IScheduler
 {
-    private static readonly Lazy<CurrentThreadScheduler> StaticInstance = new Lazy<CurrentThreadScheduler>(() => new CurrentThreadScheduler());
+    private static readonly Lazy<CurrentThreadScheduler> StaticInstance = new(() => new CurrentThreadScheduler());
 
     [ThreadStatic]
     private static bool _running;
@@ -37,7 +37,9 @@ public sealed class CurrentThreadScheduler : IScheduler
     /// Gets a value indicating whether gets a value that indicates whether the caller must call a Schedule method.
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Advanced)]
-    public static bool IsScheduleRequired => !_running;
+#pragma warning disable CA1822 // Mark members as static
+    public bool IsScheduleRequired => !_running;
+#pragma warning restore CA1822 // Mark members as static
 
     /// <summary>
     /// Gets the scheduler's notion of current time.
@@ -48,10 +50,7 @@ public sealed class CurrentThreadScheduler : IScheduler
     {
         get
         {
-            if (clock == null)
-            {
-                clock = Stopwatch.StartNew();
-            }
+            clock ??= Stopwatch.StartNew();
 
             return clock.Elapsed;
         }

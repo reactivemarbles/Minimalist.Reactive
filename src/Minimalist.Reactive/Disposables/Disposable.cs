@@ -21,7 +21,7 @@ public static class Disposable
     /// <returns>The disposable object that runs the given action upon disposal.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="dispose"/> is <c>null</c>.</exception>
     public static IDisposable Create(Action dispose) =>
-        new AnonymousDisposable(dispose ?? throw new ArgumentNullException(nameof(dispose)));
+        new AnonymousDisposable(dispose);
 
     internal sealed class EmptyDisposable : IDisposable
     {

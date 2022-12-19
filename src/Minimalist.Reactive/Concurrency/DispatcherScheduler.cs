@@ -17,7 +17,6 @@ namespace Minimalist.Reactive.Concurrency;
 /// <seealso cref="Minimalist.Reactive.Concurrency.IScheduler" />
 public class DispatcherScheduler : IScheduler
 {
-
     /// <summary>
     /// Initializes a new instance of the <see cref="DispatcherScheduler"/> class.
     /// </summary>

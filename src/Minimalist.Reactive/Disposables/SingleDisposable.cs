@@ -2,6 +2,8 @@
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System;
+
 namespace Minimalist.Reactive.Disposables;
 
 /// <summary>
@@ -9,7 +11,15 @@ namespace Minimalist.Reactive.Disposables;
 /// </summary>
 public class SingleDisposable : IsDisposed
 {
-    private readonly IDisposable _disposable;
+    private readonly Action? _action;
+    private IDisposable? _disposable;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SingleDisposable"/> class.
+    /// </summary>
+    /// <param name="action">The action.</param>
+    public SingleDisposable(Action? action = null) =>
+        _action = action;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SingleDisposable"/> class.
@@ -33,6 +43,18 @@ public class SingleDisposable : IsDisposed
     public bool IsDisposed { get; private set; }
 
     /// <summary>
+    /// Creates the specified disposable.
+    /// </summary>
+    /// <param name="disposable">The disposable.</param>
+    public void Create(IDisposable disposable) =>
+        _disposable = Disposable.Create(() =>
+        {
+            _action?.Invoke();
+            disposable.Dispose();
+            IsDisposed = true;
+        });
+
+    /// <summary>
     /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
     public void Dispose()
@@ -50,7 +72,12 @@ public class SingleDisposable : IsDisposed
     {
         if (!IsDisposed && disposing)
         {
-            _disposable.Dispose();
+            if (_disposable == null)
+            {
+                IsDisposed = true;
+            }
+
+            _disposable?.Dispose();
         }
     }
 }

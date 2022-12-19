@@ -17,6 +17,24 @@ public static class SubscribeMixins
     private static readonly Action nop = () => { };
 
     /// <summary>
+    /// Subscribes to the observable sequence without specifying any handlers.
+    /// This method can be used to evaluate the observable sequence for its side-effects only.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in the source sequence.</typeparam>
+    /// <param name="source">Observable sequence to subscribe to.</param>
+    /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>null</c>.</exception>
+    public static IDisposable Subscribe<T>(this IObservable<T> source)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        return Subscribe(source, OnNextNoOp<T>(), nop);
+    }
+
+    /// <summary>
     /// Subscribes to the observable providing just the <paramref name="onNext" /> delegate.
     /// </summary>
     /// <typeparam name="T">The Type.</typeparam>
@@ -74,4 +92,6 @@ public static class SubscribeMixins
             throw exception;
         }
     }
+
+    private static Action<T> OnNextNoOp<T>() => _ => { };
 }
