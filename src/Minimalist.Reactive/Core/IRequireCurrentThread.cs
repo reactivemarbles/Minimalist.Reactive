@@ -8,7 +8,6 @@ namespace Minimalist.Reactive.Core;
 /// IRequireCurrentThread.
 /// </summary>
 /// <typeparam name="T">The Type.</typeparam>
-/// <seealso cref="IObservable&lt;T&gt;" />
 public interface IRequireCurrentThread<T> : IObservable<T>
 {
     /// <summary>

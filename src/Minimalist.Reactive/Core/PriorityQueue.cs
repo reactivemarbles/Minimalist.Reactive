@@ -9,7 +9,6 @@ internal sealed class PriorityQueue<T>
 {
     private long _count = long.MinValue;
     private IndexedItem[] _items;
-    private int _size;
 
     public PriorityQueue()
         : this(16)
@@ -19,10 +18,10 @@ internal sealed class PriorityQueue<T>
     public PriorityQueue(int capacity)
     {
         _items = new IndexedItem[capacity];
-        _size = 0;
+        Count = 0;
     }
 
-    public int Count => _size;
+    public int Count { get; private set; }
 
     public T Dequeue()
     {
@@ -33,21 +32,21 @@ internal sealed class PriorityQueue<T>
 
     public void Enqueue(T item)
     {
-        if (_size >= _items.Length)
+        if (Count >= _items.Length)
         {
             var temp = _items;
             _items = new IndexedItem[_items.Length * 2];
             Array.Copy(temp, _items, temp.Length);
         }
 
-        var index = _size++;
+        var index = Count++;
         _items[index] = new IndexedItem { Value = item, Id = ++_count };
         Percolate(index);
     }
 
     public T Peek()
     {
-        if (_size == 0)
+        if (Count == 0)
         {
             throw new InvalidOperationException("Heap is empty.");
         }
@@ -57,7 +56,7 @@ internal sealed class PriorityQueue<T>
 
     public bool Remove(T item)
     {
-        for (var i = 0; i < _size; ++i)
+        for (var i = 0; i < Count; ++i)
         {
             if (EqualityComparer<T>.Default.Equals(_items[i].Value, item))
             {
@@ -71,7 +70,7 @@ internal sealed class PriorityQueue<T>
 
     private void Heapify(int index)
     {
-        if (index >= _size || index < 0)
+        if (index >= Count || index < 0)
         {
             return;
         }
@@ -82,12 +81,12 @@ internal sealed class PriorityQueue<T>
             var right = (2 * index) + 2;
             var first = index;
 
-            if (left < _size && IsHigherPriority(left, first))
+            if (left < Count && IsHigherPriority(left, first))
             {
                 first = left;
             }
 
-            if (right < _size && IsHigherPriority(right, first))
+            if (right < Count && IsHigherPriority(right, first))
             {
                 first = right;
             }
@@ -107,7 +106,7 @@ internal sealed class PriorityQueue<T>
 
     private int Percolate(int index)
     {
-        if (index >= _size || index < 0)
+        if (index >= Count || index < 0)
         {
             return index;
         }
@@ -126,19 +125,19 @@ internal sealed class PriorityQueue<T>
 
     private void RemoveAt(int index)
     {
-        _items[index] = _items[--_size];
-        _items[_size] = default;
+        _items[index] = _items[--Count];
+        _items[Count] = default;
 
         if (Percolate(index) == index)
         {
             Heapify(index);
         }
 
-        if (_size < _items.Length / 4)
+        if (Count < _items.Length / 4)
         {
             var temp = _items;
             _items = new IndexedItem[_items.Length / 2];
-            Array.Copy(temp, 0, _items, 0, _size);
+            Array.Copy(temp, 0, _items, 0, Count);
         }
     }
 

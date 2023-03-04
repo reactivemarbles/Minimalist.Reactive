@@ -20,7 +20,7 @@ public static partial class LinqMixins
     /// <typeparam name="TResult">The type of the result.</typeparam>
     /// <param name="source">The source.</param>
     /// <param name="selector">The selector.</param>
-    /// <returns>A IObservable.</returns>
+    /// <returns>A ISignals.</returns>
     /// <exception cref="System.ArgumentNullException">
     /// source
     /// or
@@ -35,7 +35,7 @@ public static partial class LinqMixins
     /// <typeparam name="TSource">The type of the source.</typeparam>
     /// <param name="source">The source.</param>
     /// <param name="count">The count of each buffer.</param>
-    /// <returns>An observable sequence of buffers.</returns>
+    /// <returns>An Signals sequence of buffers.</returns>
     /// <exception cref="System.ArgumentNullException">source.</exception>
     /// <exception cref="System.ArgumentOutOfRangeException">count.</exception>
     public static IObservable<IList<TSource>> Buffer<TSource>(this IObservable<TSource> source, int count)
@@ -60,7 +60,7 @@ public static partial class LinqMixins
     /// <param name="source">The source.</param>
     /// <param name="count">Length of each buffer before being skipped.</param>
     /// <param name="skip">Number of elements to skip between creation of consecutive buffers.</param>
-    /// <returns>An observable sequence of buffers taking the count then skipping the skipped value, the sequecnce is then repeated.</returns>
+    /// <returns>An Signals sequence of buffers taking the count then skipping the skipped value, the sequecnce is then repeated.</returns>
     /// <exception cref="System.ArgumentNullException">source.</exception>
     /// <exception cref="System.ArgumentOutOfRangeException">
     /// count
@@ -110,7 +110,7 @@ public static partial class LinqMixins
     /// <typeparam name="T">The Type.</typeparam>
     /// <param name="source">The source.</param>
     /// <param name="predicate">The predicate.</param>
-    /// <returns>An IObservable.</returns>
+    /// <returns>An ISignals.</returns>
     /// <exception cref="System.ArgumentNullException">
     /// source
     /// or

@@ -17,12 +17,12 @@ public static class SubscribeMixins
     private static readonly Action nop = () => { };
 
     /// <summary>
-    /// Subscribes to the observable sequence without specifying any handlers.
-    /// This method can be used to evaluate the observable sequence for its side-effects only.
+    /// Subscribes to the Signals sequence without specifying any handlers.
+    /// This method can be used to evaluate the Signals sequence for its side-effects only.
     /// </summary>
     /// <typeparam name="T">The type of the elements in the source sequence.</typeparam>
-    /// <param name="source">Observable sequence to subscribe to.</param>
-    /// <returns><see cref="IDisposable"/> object used to unsubscribe from the observable sequence.</returns>
+    /// <param name="source">Signals sequence to subscribe to.</param>
+    /// <returns><see cref="IDisposable"/> object used to unsubscribe from the Signals sequence.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>null</c>.</exception>
     public static IDisposable Subscribe<T>(this IObservable<T> source)
     {
@@ -35,7 +35,7 @@ public static class SubscribeMixins
     }
 
     /// <summary>
-    /// Subscribes to the observable providing just the <paramref name="onNext" /> delegate.
+    /// Subscribes to the Signals providing just the <paramref name="onNext" /> delegate.
     /// </summary>
     /// <typeparam name="T">The Type.</typeparam>
     /// <param name="source">The source.</param>
@@ -45,7 +45,7 @@ public static class SubscribeMixins
         => Subscribe(source, onNext, rethrow, nop);
 
     /// <summary>
-    /// Subscribes to the observable providing both the <paramref name="onNext" /> and
+    /// Subscribes to the Signals providing both the <paramref name="onNext" /> and
     /// <paramref name="onError" /> delegates.
     /// </summary>
     /// <typeparam name="T">The Type.</typeparam>
@@ -57,7 +57,7 @@ public static class SubscribeMixins
         => Subscribe(source, onNext, onError, nop);
 
     /// <summary>
-    /// Subscribes to the observable providing both the <paramref name="onNext" /> and
+    /// Subscribes to the Signals providing both the <paramref name="onNext" /> and
     /// <paramref name="onCompleted" /> delegates.
     /// </summary>
     /// <typeparam name="T">The Type.</typeparam>
@@ -69,7 +69,7 @@ public static class SubscribeMixins
         => Subscribe(source, onNext, rethrow, onCompleted);
 
     /// <summary>
-    /// Subscribes to the observable providing all three <paramref name="onNext" />,
+    /// Subscribes to the Signals providing all three <paramref name="onNext" />,
     /// <paramref name="onError" /> and <paramref name="onCompleted" /> delegates.
     /// </summary>
     /// <typeparam name="T">The Type.</typeparam>
@@ -79,7 +79,7 @@ public static class SubscribeMixins
     /// <param name="onCompleted">The on completed.</param>
     /// <returns>A IDisposable.</returns>
     public static IDisposable Subscribe<T>(this IObservable<T> source, Action<T> onNext, Action<Exception> onError, Action onCompleted)
-        => source?.Subscribe(new EmptyObserver<T>(onNext, onError, onCompleted))!;
+        => source?.Subscribe(new EmptyWitness<T>(onNext, onError, onCompleted))!;
 
     /// <summary>
     /// Rethrows Exception.

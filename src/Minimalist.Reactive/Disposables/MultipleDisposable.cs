@@ -12,7 +12,6 @@ namespace Minimalist.Reactive.Disposables;
 public class MultipleDisposable : IsDisposed
 {
     private readonly ConcurrentBag<IDisposable> _disposables;
-    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MultipleDisposable"/> class from a group of disposables.
@@ -25,7 +24,7 @@ public class MultipleDisposable : IsDisposed
     /// <summary>
     /// Gets a value indicating whether gets a value that indicates whether the object is disposed.
     /// </summary>
-    public bool IsDisposed => _disposed;
+    public bool IsDisposed { get; private set; }
 
     /// <summary>
     /// Creates a new group of disposable resources that are disposed together.
@@ -40,7 +39,7 @@ public class MultipleDisposable : IsDisposed
     /// <param name="disposable">Disposable to add.</param>
     public void Add(IDisposable disposable)
     {
-        if (_disposed)
+        if (IsDisposed)
         {
             disposable?.Dispose();
         }
@@ -65,14 +64,14 @@ public class MultipleDisposable : IsDisposed
     /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed)
+        if (IsDisposed)
         {
             return;
         }
 
         if (disposing)
         {
-            _disposed = true;
+            IsDisposed = true;
             while (_disposables.TryTake(out var disposable))
             {
                 disposable?.Dispose();
