@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2022 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -12,6 +12,7 @@ namespace Minimalist.Reactive.Disposables;
 public class MultipleDisposable : IsDisposed
 {
     private readonly ConcurrentBag<IDisposable> _disposables;
+    private readonly object _gate = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MultipleDisposable"/> class from a group of disposables.
@@ -47,6 +48,32 @@ public class MultipleDisposable : IsDisposed
         {
             _disposables.Add(disposable);
         }
+    }
+
+    /// <summary>
+    /// Removes and disposes the first occurrence of a disposable from the CompositeDisposable.
+    /// </summary>
+    /// <param name="item">Disposable to remove.</param>
+    /// <returns>true if found; false otherwise.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="item"/> is null.</exception>
+    public bool Remove(IDisposable? item)
+    {
+        var shouldDispose = false;
+
+        lock (_gate)
+        {
+            if (!IsDisposed)
+            {
+                shouldDispose = _disposables.TryTake(out item!);
+            }
+        }
+
+        if (shouldDispose)
+        {
+            item?.Dispose();
+        }
+
+        return shouldDispose;
     }
 
     /// <summary>

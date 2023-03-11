@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2022 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -30,13 +30,6 @@ public static partial class Scheduler
             throw new ArgumentNullException(nameof(action));
         }
 
-        // Surprisingly, passing the method group of Invoke will create a fresh
-        // delegate each time although it's static, while an anonymous
-        // lambda without the need of a closure will be cached.
-        // Once Roslyn supports caching delegates for method groups,
-        // the anonymous lambda can be replaced by the method group again. Until then,
-        // to avoid the repetition of code, the call to Invoke is left intact.
-        // Watch https://github.com/dotnet/roslyn/issues/5835
         return scheduler.Schedule(action, static (_, a) => Invoke(a));
     }
 
@@ -67,7 +60,6 @@ public static partial class Scheduler
             throw new ArgumentNullException(nameof(action));
         }
 
-        // See note above.
         return scheduler.Schedule(action, dueTime, static (_, a) => Invoke(a));
     }
 
@@ -98,8 +90,59 @@ public static partial class Scheduler
             throw new ArgumentNullException(nameof(action));
         }
 
-        // See note above.
         return scheduler.Schedule(action, dueTime, static (_, a) => Invoke(a));
+    }
+
+    /// <summary>
+    /// Schedules the specified action.
+    /// </summary>
+    /// <param name="scheduler">The scheduler.</param>
+    /// <param name="action">The action.</param>
+    /// <returns>The disposable object used to cancel the scheduled action (best effort).</returns>
+    public static IDisposable Schedule(this IScheduler scheduler, Action<Action> action)
+    {
+        // InvokeRec1
+        var group = new MultipleDisposable();
+        var gate = new object();
+
+#pragma warning disable IDE0039 // Use local function
+        Action? recursiveAction = null;
+#pragma warning restore IDE0039 // Use local function
+        recursiveAction = () => action(() =>
+        {
+            var isAdded = false;
+            var isDone = false;
+            var d = default(IDisposable);
+            d = scheduler.Schedule(() =>
+            {
+                lock (gate)
+                {
+                    if (isAdded)
+                    {
+                        group.Remove(d);
+                    }
+                    else
+                    {
+                        isDone = true;
+                    }
+                }
+
+                recursiveAction!();
+            });
+
+            lock (gate)
+            {
+                if (!isDone)
+                {
+                    group.Add(d);
+                    isAdded = true;
+                }
+            }
+        });
+
+        group.Add(scheduler.Schedule(recursiveAction));
+
+        return group;
     }
 
     /// <summary>
@@ -195,7 +238,6 @@ public static partial class Scheduler
             throw new ArgumentNullException(nameof(action));
         }
 
-        // See note above.
         return scheduler.Schedule((state, action), dueTime, static (_, tuple) => Invoke(tuple));
     }
 
@@ -228,7 +270,6 @@ public static partial class Scheduler
             throw new ArgumentNullException(nameof(action));
         }
 
-        // See note above.
         return scheduler.Schedule((state, action), dueTime, static (_, tuple) => Invoke(tuple));
     }
 
@@ -261,7 +302,6 @@ public static partial class Scheduler
             throw new ArgumentNullException(nameof(action));
         }
 
-        // See note above.
         return scheduler.Schedule((state, action), dueTime, static (_, tuple) => Invoke(tuple));
     }
 
@@ -294,7 +334,6 @@ public static partial class Scheduler
             throw new ArgumentNullException(nameof(action));
         }
 
-        // See note above.
         return scheduler.Schedule((state, action), dueTime, static (_, tuple) => Invoke(tuple));
     }
 

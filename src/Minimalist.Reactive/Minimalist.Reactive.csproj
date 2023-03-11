@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0-windows;net472;net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net472;netstandard2.0;net6.0;net6.0-windows;net7.0;net7.0-windows</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(TargetFramework.StartsWith('net472')) or $(TargetFramework.StartsWith('net6.0-windows'))">
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('net472')) or $(TargetFramework.StartsWith('net6.0-windows')) or $(TargetFramework.StartsWith('net7.0-windows'))">
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <DefineConstants>WINDOWS</DefineConstants>

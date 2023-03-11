@@ -1,12 +1,10 @@
-﻿// Copyright (c) 2019-2022 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
 using System;
 using System.Threading;
-#if NET48
 using System.Threading.Tasks;
-#endif
 using Minimalist.Reactive.Signals;
 using Xunit;
 
@@ -31,7 +29,6 @@ public class AsyncSignalTests
     public void OnError_ArgumentChecking() =>
         Assert.Throws<ArgumentNullException>(() => new AsyncSignal<int>().OnError(null!));
 
-#if NET48
     /// <summary>
     /// Awaits the blocking.
     /// </summary>
@@ -101,7 +98,6 @@ public class AsyncSignalTests
 
         Assert.True(ctx.Ran);
     }
-#endif
 
     /// <summary>
     /// Determines whether this instance has observers.
@@ -230,12 +226,11 @@ public class AsyncSignalTests
         Assert.False(s.HasObservers);
     }
 
-#if NET48
     /// <summary>
     /// Gets the result blocking implementation.
     /// </summary>
     /// <param name="s">The s.</param>
-    private static void GetResult_BlockingImpl(AsyncSignal<int> s)
+    private static void GetResult_BlockingImpl(IAwaitSignal<int> s)
     {
         Assert.False(s.IsCompleted);
 
@@ -267,7 +262,7 @@ public class AsyncSignalTests
     /// Gets the result blocking throw implementation.
     /// </summary>
     /// <param name="s">The s.</param>
-    private static void GetResult_Blocking_ThrowImpl(AsyncSignal<int> s)
+    private static void GetResult_Blocking_ThrowImpl(IAwaitSignal<int> s)
     {
         Assert.False(s.IsCompleted);
 
@@ -316,5 +311,4 @@ public class AsyncSignalTests
             d(state);
         }
     }
-#endif
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2022 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -12,11 +12,7 @@ namespace Minimalist.Reactive.Signals;
 /// </summary>
 /// <typeparam name="T">The Type.</typeparam>
 /// <seealso cref="Minimalist.Reactive.Signals.ISignal&lt;T&gt;" />
-#if NET472 || NETSTANDARD2_0
-public class AsyncSignal<T> : ISignal<T>, System.Runtime.CompilerServices.INotifyCompletion
-#else
-public class AsyncSignal<T> : ISignal<T>
-#endif
+public class AsyncSignal<T> : IAwaitSignal<T>
 {
     private readonly object _observerLock = new();
     private T? _lastValue;
@@ -229,44 +225,10 @@ public class AsyncSignal<T> : ISignal<T>
     }
 
     /// <summary>
-    /// Releases unmanaged and - optionally - managed resources.
-    /// </summary>
-    /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!IsDisposed)
-        {
-            if (disposing)
-            {
-                lock (_observerLock)
-                {
-                    _outObserver = DisposedWitness<T>.Instance;
-                    _lastError = null;
-                    _lastValue = default;
-                }
-            }
-
-            IsDisposed = true;
-        }
-    }
-
-    private void ThrowIfDisposed()
-    {
-        if (IsDisposed)
-        {
-            throw new ObjectDisposedException(string.Empty);
-        }
-    }
-
-#if NET472 || NETSTANDARD2_0
-
-    /// <summary>
     /// Gets an awaitable object for the current AsyncSubject.
     /// </summary>
     /// <returns>Object that can be awaited.</returns>
-#pragma warning disable SA1202 // Elements should be ordered by access
-    public AsyncSignal<T> GetAwaiter() => this;
-#pragma warning restore SA1202 // Elements should be ordered by access
+    public IAwaitSignal<T> GetAwaiter() => this;
 
     /// <summary>
     /// Specifies a callback action that will be invoked when the subject completes.
@@ -307,6 +269,36 @@ public class AsyncSignal<T> : ISignal<T>
         return _lastValue!;
     }
 
+    /// <summary>
+    /// Releases unmanaged and - optionally - managed resources.
+    /// </summary>
+    /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!IsDisposed)
+        {
+            if (disposing)
+            {
+                lock (_observerLock)
+                {
+                    _outObserver = DisposedWitness<T>.Instance;
+                    _lastError = null;
+                    _lastValue = default;
+                }
+            }
+
+            IsDisposed = true;
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (IsDisposed)
+        {
+            throw new ObjectDisposedException(string.Empty);
+        }
+    }
+
     private void OnCompleted(Action continuation, bool originalContext) =>
         Subscribe(new AwaitObserver(continuation, originalContext));
 
@@ -337,7 +329,7 @@ public class AsyncSignal<T> : ISignal<T>
         {
             if (_context != null)
             {
-                _context.Post(c => ((Action)c)(), _callback);
+                _context.Post(c => ((Action)c!)(), _callback);
             }
             else
             {
@@ -345,8 +337,6 @@ public class AsyncSignal<T> : ISignal<T>
             }
         }
     }
-
-#endif
 
     private class ObserverHandler : IDisposable
     {

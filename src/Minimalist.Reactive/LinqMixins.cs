@@ -1,8 +1,7 @@
-﻿// Copyright (c) 2019-2022 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
-using System;
 using Minimalist.Reactive.Disposables;
 using Minimalist.Reactive.Signals;
 
@@ -92,8 +91,12 @@ public static partial class LinqMixins
     /// </summary>
     /// <param name="disposable">The disposable.</param>
     /// <param name="disposables">The disposables.</param>
-    public static void DisposeWith(this IDisposable disposable, MultipleDisposable disposables) =>
+    /// <returns>An IDisposable.</returns>
+    public static IDisposable DisposeWith(this IDisposable disposable, MultipleDisposable disposables)
+    {
         disposables?.Add(disposable);
+        return disposable;
+    }
 
     /// <summary>
     /// Disposes the with.

@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2019-2022 ReactiveUI Association Incorporated. All rights reserved.
+﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using Minimalist.Reactive.Concurrency;
 using Minimalist.Reactive.Signals.Core;
 
 namespace Minimalist.Reactive.Signals;
@@ -140,4 +141,14 @@ public static partial class Signal
     /// <returns>An Observable.</returns>
     public static IObservable<T> Defer<T>(Func<IObservable<T>> observableFactory) =>
         new DeferSignal<T>(observableFactory);
+
+    /// <summary>
+    /// Witnesses the on.
+    /// </summary>
+    /// <typeparam name="T">The type.</typeparam>
+    /// <param name="source">The source.</param>
+    /// <param name="scheduler">The scheduler.</param>
+    /// <returns>An Observable.</returns>
+    public static IObservable<T> WitnessOn<T>(this IObservable<T> source, IScheduler scheduler) =>
+        new WitnessOnSignal<T>(source, scheduler);
 }
