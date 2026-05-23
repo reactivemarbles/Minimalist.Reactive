@@ -10,7 +10,7 @@ env:
 
 jobs:
   release:
-    runs-on: windows-2022
+    runs-on: windows-2025
     environment:
       name: release
     outputs:
@@ -34,13 +34,13 @@ jobs:
         echo "##vso[task.prependpath]$(vs where release --prop=InstallationPath)\MSBuild\Current\Bin"
 
     - name: Checkout
-      uses: actions/checkout@v3.1.0
+      uses: actions/checkout@v6.0.1
       with:
         fetch-depth: 0
         lfs: true
-        
+
     - name: Install .NET 6 & .NET7
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: |
             6.0.x
@@ -60,7 +60,7 @@ jobs:
       run: dotnet build --configuration=${{ env.configuration }} --verbosity=minimal --no-restore
       working-directory: src
 
-    - uses: nuget/setup-nuget@v1
+    - uses: nuget/setup-nuget@v2
       name: Setup NuGet
 
     - name: Pack

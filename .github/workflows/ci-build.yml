@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-2025
     outputs:
       nbgv: ${{ steps.nbgv.outputs.SemVer2 }}
     steps:
@@ -34,13 +34,13 @@ jobs:
         echo "##vso[task.prependpath]$(vs where release --prop=InstallationPath)\MSBuild\Current\Bin"
 
     - name: Checkout
-      uses: actions/checkout@v3.1.0
+      uses: actions/checkout@v6.0.1
       with:
         fetch-depth: 0
         lfs: true
         
     - name: Install .NET 6 & .NET7
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: |
             6.0.x
@@ -61,7 +61,7 @@ jobs:
       working-directory: src
 
     - name: Run Unit Tests and Generate Coverage
-      uses: glennawatson/coverlet-msbuild@v1
+      uses: glennawatson/coverlet-msbuild@v2
       with:
         project-files: '**/*Tests*.csproj'
         no-build: true
