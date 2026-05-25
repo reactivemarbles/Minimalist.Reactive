@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -7,6 +7,7 @@ namespace Minimalist.Reactive.Disposables;
 /// <summary>
 /// SingleReplaceableDisposable.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class SingleReplaceableDisposable : IsDisposed
 {
     private readonly object _gate = new();
@@ -93,18 +94,23 @@ public class SingleReplaceableDisposable : IsDisposed
     protected virtual void Dispose(bool disposing)
     {
         var old = default(IDisposable);
+        var invokeAction = false;
 
         lock (_gate)
         {
             if (!_disposed)
             {
                 _disposed = true;
+                invokeAction = true;
                 old = _disposable;
                 _disposable = null;
             }
         }
 
         old?.Dispose();
-        _action?.Invoke();
+        if (invokeAction)
+        {
+            _action?.Invoke();
+        }
     }
 }
