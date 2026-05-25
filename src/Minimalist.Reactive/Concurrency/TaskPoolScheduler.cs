@@ -30,6 +30,11 @@ public sealed class TaskPoolScheduler : IScheduler
     public static TaskPoolScheduler Instance { get; } = new(Task.Factory);
 
     /// <summary>
+    /// Gets the default task-pool scheduler.
+    /// </summary>
+    public static TaskPoolScheduler Default => Instance;
+
+    /// <summary>
     /// Gets the scheduler's notion of current time.
     /// </summary>
     public DateTimeOffset Now => Scheduler.Now;

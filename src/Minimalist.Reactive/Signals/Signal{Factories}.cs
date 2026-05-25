@@ -237,6 +237,50 @@ public static partial class Signal
         });
     }
 
+    /// <summary>
+    /// Runs a function on the supplied scheduler and emits its result.
+    /// </summary>
+    public static IObservable<T> Start<T>(Func<T> function, IScheduler? scheduler = null)
+    {
+        if (function == null)
+        {
+            throw new ArgumentNullException(nameof(function));
+        }
+
+        scheduler ??= Scheduler.Default;
+        return CreateSafe<T>(observer => scheduler.Schedule(() =>
+        {
+            try
+            {
+                observer.OnNext(function());
+                observer.OnCompleted();
+            }
+            catch (Exception error)
+            {
+                observer.OnError(error);
+            }
+        }), scheduler == Scheduler.CurrentThread);
+    }
+
+    /// <summary>
+    /// Runs an action on the supplied scheduler and emits <see cref="RxVoid.Default"/> when it completes.
+    /// </summary>
+    public static IObservable<RxVoid> Start(Action action, IScheduler? scheduler = null)
+    {
+        if (action == null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        return Start(
+            () =>
+            {
+                action();
+                return RxVoid.Default;
+            },
+            scheduler);
+    }
+
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER || NET5_0_OR_GREATER
     /// <summary>
     /// Creates a signal from an async enumerable sequence and cancels enumeration when disposed.
