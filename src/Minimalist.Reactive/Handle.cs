@@ -5,6 +5,7 @@
 using Minimalist.Reactive.Signals;
 
 namespace Minimalist.Reactive;
+
 internal static class Handle
 {
     public static readonly Action Nop = () => { };

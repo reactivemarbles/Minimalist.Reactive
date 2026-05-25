@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -6,9 +6,11 @@ using System.Runtime.ExceptionServices;
 using Minimalist.Reactive.Core;
 
 namespace Minimalist.Reactive;
+
 /// <summary>
 /// SubscribeMixins.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class SubscribeMixins
 {
     private static readonly Action<Exception> rethrow = e => ExceptionDispatchInfo.Capture(e).Throw();
@@ -40,7 +42,14 @@ public static class SubscribeMixins
     /// <param name="onNext">The on next.</param>
     /// <returns>A IDisposable.</returns>
     public static IDisposable Subscribe<T>(this IObservable<T> source, Action<T> onNext)
-        => Subscribe(source, onNext, rethrow, nop);
+    {
+        if (source is Signals.Signal<T> signal)
+        {
+            return signal.SubscribeAction(onNext);
+        }
+
+        return Subscribe(source, onNext, rethrow, nop);
+    }
 
     /// <summary>
     /// Subscribes to the Signals providing both the <paramref name="onNext" /> and
