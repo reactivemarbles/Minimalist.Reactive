@@ -5,7 +5,7 @@
 using System;
 using Minimalist.Reactive.Concurrency;
 using Minimalist.Reactive.Signals;
-using Xunit;
+using TUnit.Core;
 
 namespace Minimalist.Reactive.Tests;
 
@@ -17,7 +17,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Constructors the argument checking.
     /// </summary>
-    [Fact]
+    [Test]
     public void Constructor_ArgumentChecking()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new ReplaySignal<int>(-1));
@@ -47,7 +47,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Determines whether this instance has observers.
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers()
     {
         HasObserversImpl(new ReplaySignal<int>());
@@ -59,7 +59,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Determines whether [has observers dispose1].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose1()
     {
         HasObservers_Dispose1Impl(new ReplaySignal<int>());
@@ -71,7 +71,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Determines whether [has observers dispose2].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose2()
     {
         HasObservers_Dispose2Impl(new ReplaySignal<int>());
@@ -83,7 +83,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Determines whether [has observers dispose3].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose3()
     {
         HasObservers_Dispose3Impl(new ReplaySignal<int>());
@@ -95,7 +95,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Determines whether [has observers on completed].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_OnCompleted()
     {
         HasObservers_OnCompletedImpl(new ReplaySignal<int>());
@@ -107,7 +107,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Determines whether [has observers on error].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_OnError()
     {
         HasObservers_OnErrorImpl(new ReplaySignal<int>());
@@ -119,7 +119,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Called when [error argument checking].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnError_ArgumentChecking()
     {
         Assert.Throws<ArgumentNullException>(() => new ReplaySignal<int>().OnError(null!));
@@ -131,7 +131,7 @@ public class ReplaySignalTests
     /// <summary>
     /// Subscribes the argument checking.
     /// </summary>
-    [Fact]
+    [Test]
     public void Subscribe_ArgumentChecking()
     {
         Assert.Throws<ArgumentNullException>(() => new ReplaySignal<int>().Subscribe(null!));

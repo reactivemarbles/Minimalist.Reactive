@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Minimalist.Reactive.Disposables;
 using Minimalist.Reactive.Signals;
-using Xunit;
+using TUnit.Core;
 
 namespace Minimalist.Reactive.Tests;
 
@@ -19,7 +19,7 @@ public class SignalCreateTests
     /// <summary>
     /// Creates the argument checking.
     /// </summary>
-    [Fact]
+    [Test]
     public void Create_ArgumentChecking()
     {
         Assert.Throws<ArgumentNullException>(() => Signal.Create(default(Func<IObserver<int>, IDisposable>)));
@@ -30,7 +30,7 @@ public class SignalCreateTests
     /// <summary>
     /// Creates the null coalescing action.
     /// </summary>
-    [Fact]
+    [Test]
     public void Create_NullCoalescingAction()
     {
         var xs = Signal.Create<int>(o =>
@@ -49,7 +49,7 @@ public class SignalCreateTests
     /// <summary>
     /// Creates the exception.
     /// </summary>
-    [Fact]
+    [Test]
     public void Create_Exception() =>
         Assert.Throws<InvalidOperationException>(() =>
                Signal.Create(new Func<IObserver<int>, IDisposable>(_ => throw new InvalidOperationException())).Subscribe());
@@ -57,7 +57,7 @@ public class SignalCreateTests
     /// <summary>
     /// Creates the observer throws.
     /// </summary>
-    [Fact]
+    [Test]
     public void Create_ObserverThrows()
     {
         Assert.Throws<InvalidOperationException>(() =>
@@ -83,7 +83,7 @@ public class SignalCreateTests
     /// <summary>
     /// Creates the with disposable argument checking.
     /// </summary>
-    [Fact]
+    [Test]
     public void CreateWithDisposable_ArgumentChecking()
     {
         Assert.Throws<ArgumentNullException>(() => Signal.Create(default(Func<IObserver<int>, IDisposable>)));
@@ -98,7 +98,7 @@ public class SignalCreateTests
     /// <summary>
     /// Creates the with disposable null coalescing action.
     /// </summary>
-    [Fact]
+    [Test]
     public void CreateWithDisposable_NullCoalescingAction()
     {
         var xs = Signal.Create<int>(o =>
@@ -117,7 +117,7 @@ public class SignalCreateTests
     /// <summary>
     /// Creates the with disposable exception.
     /// </summary>
-    [Fact]
+    [Test]
     public void CreateWithDisposable_Exception() =>
         Assert.Throws<InvalidOperationException>(() =>
                Signal.Create(new Func<IObserver<int>, IDisposable>(_ => throw new InvalidOperationException())).Subscribe());

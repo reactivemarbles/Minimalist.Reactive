@@ -4,7 +4,7 @@
 
 using System;
 using Minimalist.Reactive.Signals;
-using Xunit;
+using TUnit.Core;
 
 namespace Minimalist.Reactive.Tests;
 
@@ -16,21 +16,21 @@ public class BehaviourSignalTests
     /// <summary>
     /// Subscribes the argument checking.
     /// </summary>
-    [Fact]
+    [Test]
     public void Subscribe_ArgumentChecking() =>
         Assert.Throws<ArgumentNullException>(() => new BehaviourSignal<int>(1).Subscribe(null!));
 
     /// <summary>
     /// Called when [error argument checking].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnError_ArgumentChecking() =>
         Assert.Throws<ArgumentNullException>(() => new BehaviourSignal<int>(1).OnError(null!));
 
     /// <summary>
     /// Determines whether this instance has observers.
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers()
     {
         var s = new BehaviourSignal<int>(42);
@@ -58,7 +58,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Determines whether [has observers dispose1].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose1()
     {
         var s = new BehaviourSignal<int>(42);
@@ -81,7 +81,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Determines whether [has observers dispose2].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose2()
     {
         var s = new BehaviourSignal<int>(42);
@@ -104,7 +104,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Determines whether [has observers dispose3].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose3()
     {
         var s = new BehaviourSignal<int>(42);
@@ -119,7 +119,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Determines whether [has observers on completed].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_OnCompleted()
     {
         var s = new BehaviourSignal<int>(42);
@@ -138,7 +138,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Determines whether [has observers on error].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_OnError()
     {
         var s = new BehaviourSignal<int>(42);
@@ -157,7 +157,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Values the initial.
     /// </summary>
-    [Fact]
+    [Test]
     public void Value_Initial()
     {
         var s = new BehaviourSignal<int>(42);
@@ -170,7 +170,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Values the first.
     /// </summary>
-    [Fact]
+    [Test]
     public void Value_First()
     {
         var s = new BehaviourSignal<int>(42);
@@ -189,7 +189,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Values the second.
     /// </summary>
-    [Fact]
+    [Test]
     public void Value_Second()
     {
         var s = new BehaviourSignal<int>(42);
@@ -214,7 +214,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Values the frozen after on completed.
     /// </summary>
-    [Fact]
+    [Test]
     public void Value_FrozenAfterOnCompleted()
     {
         var s = new BehaviourSignal<int>(42);
@@ -251,7 +251,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Values the throws after on error.
     /// </summary>
-    [Fact]
+    [Test]
     public void Value_ThrowsAfterOnError()
     {
         var s = new BehaviourSignal<int>(42);
@@ -270,7 +270,7 @@ public class BehaviourSignalTests
     /// <summary>
     /// Values the throws on dispose.
     /// </summary>
-    [Fact]
+    [Test]
     public void Value_ThrowsOnDispose()
     {
         var s = new BehaviourSignal<int>(42);
