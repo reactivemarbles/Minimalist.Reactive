@@ -5,6 +5,7 @@
 using System.Globalization;
 
 namespace Minimalist.Reactive.Core;
+
 /// <summary>
 /// Represents a value associated with time interval information.
 /// The time interval can represent the time it took to produce the value, the interval relative to a previous value, the value's delivery time relative to a base, etc.
