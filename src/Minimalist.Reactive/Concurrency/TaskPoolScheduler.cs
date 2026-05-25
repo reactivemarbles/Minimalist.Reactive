@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -10,6 +10,7 @@ namespace Minimalist.Reactive.Concurrency;
 /// TaskPoolScheduler.
 /// </summary>
 /// <seealso cref="Minimalist.Reactive.Concurrency.IScheduler" />
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public sealed class TaskPoolScheduler : IScheduler
 {
     private readonly TaskFactory _taskFactory;

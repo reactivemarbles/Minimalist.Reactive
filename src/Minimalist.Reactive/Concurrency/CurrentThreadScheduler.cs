@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -11,6 +11,7 @@ namespace Minimalist.Reactive.Concurrency;
 /// CurrentThreadScheduler.
 /// </summary>
 /// <seealso cref="Minimalist.Reactive.Concurrency.IScheduler" />
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public sealed class CurrentThreadScheduler : IScheduler
 {
     private static readonly Lazy<CurrentThreadScheduler> StaticInstance = new(() => new CurrentThreadScheduler());
@@ -72,7 +73,7 @@ public sealed class CurrentThreadScheduler : IScheduler
             throw new ArgumentNullException(nameof(action));
         }
 
-        return action(this, state);
+        return Schedule(state, TimeSpan.Zero, action);
     }
 
     /// <summary>
@@ -173,7 +174,7 @@ public sealed class CurrentThreadScheduler : IScheduler
     public IDisposable Schedule<TState>(TState state, DateTimeOffset dueTime, Func<IScheduler, TState, IDisposable> action)
     {
         var due = Scheduler.Normalize(dueTime - Now);
-        return Schedule(state, TimeSpan.Zero, action);
+        return Schedule(state, due, action);
     }
 
     private static SchedulerQueue<TimeSpan>? GetQueue() => _threadLocalQueue;

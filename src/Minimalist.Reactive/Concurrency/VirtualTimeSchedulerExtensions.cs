@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -9,6 +9,7 @@ namespace Minimalist.Reactive.Concurrency;
 /// <summary>
 /// Provides a set of extension methods for virtual time scheduling.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public static class VirtualTimeSchedulerExtensions
 {
     /// <summary>
