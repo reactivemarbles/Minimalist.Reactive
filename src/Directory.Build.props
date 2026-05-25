@@ -10,6 +10,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/reactivemarbles/Minimalist.Reactive</PackageProjectUrl>
     <PackageDescription>A Minimalist version of 'System.Reactive'.</PackageDescription>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>logo.png</PackageIcon>
     <Owners>glennawatson; chrispulman</Owners>
     <PackageTags>system.reactive;propertychanged;inpc;reactive;functional;akavache;cache;database</PackageTags>
@@ -43,6 +44,7 @@
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\LICENSE" Pack="true" PackagePath="LICENSE" />
+    <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="README.md" />
     <None Include="$(MSBuildThisFileDirectory)..\images\logo.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
