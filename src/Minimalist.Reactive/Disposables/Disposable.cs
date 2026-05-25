@@ -19,9 +19,9 @@ public static class Disposable
     /// </summary>
     /// <param name="dispose">Action to run during the first call to <see cref="IDisposable.Dispose"/>. The action is guaranteed to be run at most once.</param>
     /// <returns>The disposable object that runs the given action upon disposal.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="dispose"/> is <c>null</c>.</exception>
+    /// <remarks>A <see langword="null"/> action returns <see cref="Empty"/> for backward compatibility with existing Minimalist.Reactive create pipelines.</remarks>
     public static IDisposable Create(Action dispose) =>
-        new AnonymousDisposable(dispose);
+        dispose == null ? Empty : new AnonymousDisposable(dispose);
 
     internal sealed class EmptyDisposable : IDisposable
     {

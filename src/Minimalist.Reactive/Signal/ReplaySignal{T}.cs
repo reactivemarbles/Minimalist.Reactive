@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -12,17 +12,22 @@ namespace Minimalist.Reactive.Signals;
 /// ReplaySignal.
 /// </summary>
 /// <typeparam name="T">The Type.</typeparam>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class ReplaySignal<T> : ISignal<T>
 {
     private readonly int _bufferSize;
     private readonly TimeSpan _window;
     private readonly DateTimeOffset _startTime;
     private readonly IScheduler _scheduler;
+    private readonly bool _usesWindow;
     private readonly object _observerLock = new();
     private bool _isStopped;
     private Exception? _lastError;
     private IObserver<T> _outObserver = EmptyWitness<T>.Instance;
-    private Queue<TimeInterval<T>>? _queue = new();
+    private Queue<TimeInterval<T>>? _queue;
+    private T[]? _ring;
+    private int _ringCount;
+    private int _ringNext;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ReplaySignal{T}"/> class.
@@ -51,7 +56,16 @@ public class ReplaySignal<T> : ISignal<T>
         _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
         _bufferSize = bufferSize;
         _window = window;
-        _startTime = scheduler.Now;
+        _usesWindow = window != TimeSpan.MaxValue;
+        _startTime = _usesWindow ? scheduler.Now : DateTimeOffset.MinValue;
+        if (_usesWindow || bufferSize == int.MaxValue)
+        {
+            _queue = new Queue<TimeInterval<T>>();
+        }
+        else
+        {
+            _ring = bufferSize == 0 ? Array.Empty<T>() : new T[bufferSize];
+        }
     }
 
     /// <summary>
@@ -123,7 +137,7 @@ public class ReplaySignal<T> : ISignal<T>
     /// <value>
     ///   <c>true</c> if this instance has observers; otherwise, <c>false</c>.
     /// </value>
-    public bool HasObservers => (_outObserver as ListWitness<T>)?.HasObservers ?? false;
+    public bool HasObservers => !ReferenceEquals(_outObserver, EmptyWitness<T>.Instance) && !ReferenceEquals(_outObserver, DisposedWitness<T>.Instance) && !_isStopped;
 
     /// <summary>
     /// Gets a value indicating whether this instance is disposed.
@@ -160,7 +174,10 @@ public class ReplaySignal<T> : ISignal<T>
             old = _outObserver;
             _outObserver = EmptyWitness<T>.Instance;
             _isStopped = true;
-            Trim();
+            if (_queue != null)
+            {
+                Trim();
+            }
         }
 
         old.OnCompleted();
@@ -191,7 +208,10 @@ public class ReplaySignal<T> : ISignal<T>
             _outObserver = EmptyWitness<T>.Instance;
             _isStopped = true;
             _lastError = exception;
-            Trim();
+            if (_queue != null)
+            {
+                Trim();
+            }
         }
 
         old.OnError(exception);
@@ -212,8 +232,16 @@ public class ReplaySignal<T> : ISignal<T>
                 return;
             }
 
-            _queue?.Enqueue(new TimeInterval<T>(value, _scheduler.Now - _startTime));
-            Trim();
+            if (_ring != null)
+            {
+                AppendToRing(value);
+            }
+            else
+            {
+                var interval = _usesWindow ? _scheduler.Now - _startTime : TimeSpan.Zero;
+                _queue!.Enqueue(new TimeInterval<T>(value, interval));
+                Trim();
+            }
 
             current = _outObserver;
         }
@@ -249,9 +277,9 @@ public class ReplaySignal<T> : ISignal<T>
                 else
                 {
                     var current = _outObserver;
-                    if (current is EmptyWitness<T>)
+                    if (ReferenceEquals(current, EmptyWitness<T>.Instance))
                     {
-                        _outObserver = new ListWitness<T>(new ImmutableList<IObserver<T>>(new[] { observer }));
+                        _outObserver = observer;
                     }
                     else
                     {
@@ -263,10 +291,17 @@ public class ReplaySignal<T> : ISignal<T>
             }
 
             ex = _lastError;
-            Trim();
-            foreach (var item in _queue!)
+            if (_ring != null)
             {
-                observer.OnNext(item.Value);
+                ReplayRing(observer);
+            }
+            else
+            {
+                Trim();
+                foreach (var item in _queue!)
+                {
+                    observer.OnNext(item.Value);
+                }
             }
         }
 
@@ -301,6 +336,9 @@ public class ReplaySignal<T> : ISignal<T>
                     _outObserver = DisposedWitness<T>.Instance;
                     _lastError = null;
                     _queue = null;
+                    _ring = null;
+                    _ringCount = 0;
+                    _ringNext = 0;
                 }
             }
 
@@ -318,16 +356,67 @@ public class ReplaySignal<T> : ISignal<T>
 
     private void Trim()
     {
-        var elapsedTime = Scheduler.Normalize(_scheduler.Now - _startTime);
-
         while (_queue!.Count > _bufferSize)
         {
             _queue.Dequeue();
         }
 
+        if (!_usesWindow)
+        {
+            return;
+        }
+
+        var elapsedTime = Scheduler.Normalize(_scheduler.Now - _startTime);
+
         while (_queue.Count > 0 && elapsedTime.Subtract(_queue.Peek().Interval).CompareTo(_window) > 0)
         {
             _queue.Dequeue();
+        }
+    }
+
+    private void AppendToRing(T value)
+    {
+        var ring = _ring!;
+        if (ring.Length == 0)
+        {
+            return;
+        }
+
+        ring[_ringNext] = value;
+        _ringNext++;
+        if (_ringNext == ring.Length)
+        {
+            _ringNext = 0;
+        }
+
+        if (_ringCount < ring.Length)
+        {
+            _ringCount++;
+        }
+    }
+
+    private void ReplayRing(IObserver<T> observer)
+    {
+        var ring = _ring!;
+        if (_ringCount == 0 || ring.Length == 0)
+        {
+            return;
+        }
+
+        var index = _ringNext - _ringCount;
+        if (index < 0)
+        {
+            index += ring.Length;
+        }
+
+        for (var i = 0; i < _ringCount; i++)
+        {
+            observer.OnNext(ring[index]);
+            index++;
+            if (index == ring.Length)
+            {
+                index = 0;
+            }
         }
     }
 

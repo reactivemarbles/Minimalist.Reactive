@@ -3,7 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 namespace Minimalist.Reactive.Core;
-internal class ListWitness<T> : IObserver<T>
+
+internal sealed class ListWitness<T> : IObserver<T>
 {
     private readonly ImmutableList<IObserver<T>> _observers;
 
@@ -50,7 +51,7 @@ internal class ListWitness<T> : IObserver<T>
 
         if (_observers.Items.Length == 1)
         {
-            return _observers.Items[0];
+            return EmptyWitness<T>.Instance;
         }
 
         return new ListWitness<T>(_observers.Remove(observer));

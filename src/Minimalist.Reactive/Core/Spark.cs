@@ -39,5 +39,10 @@ public static class Spark
     /// </summary>
     /// <typeparam name="T">The type of the elements received by the observer. Upon dematerialization of the spark into an observable sequence, this type is used as the element type for the sequence.</typeparam>
     /// <returns>The OnCompleted spark.</returns>
-    public static Spark<T> CreateOnCompleted<T>() => new Spark<T>.OnCompletedSpark();
+    public static Spark<T> CreateOnCompleted<T>() => CompletedSparkCache<T>.Instance;
+
+    private static class CompletedSparkCache<T>
+    {
+        public static readonly Spark<T> Instance = new Spark<T>.OnCompletedSpark();
+    }
 }

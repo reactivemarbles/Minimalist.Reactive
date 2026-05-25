@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Minimalist.Reactive.Signals;
-using Xunit;
+using TUnit.Core;
 
 namespace Minimalist.Reactive.Tests;
 
@@ -21,7 +21,7 @@ public class SignalFromTaskTest
     /// Signals from task handles user exceptions.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTaskHandlesUserExceptions()
     {
         var statusTrail = new List<(int, string)>();
@@ -83,7 +83,7 @@ public class SignalFromTaskTest
     /// Signals from task handles cancellation.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTaskHandlesCancellation()
     {
         var statusTrail = new List<(int, string)>();
@@ -142,7 +142,7 @@ public class SignalFromTaskTest
     /// Signals from task handles token cancellation.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTaskHandlesTokenCancellation()
     {
         var statusTrail = new List<(int, string)>();
@@ -207,7 +207,7 @@ public class SignalFromTaskTest
     /// Signals from task handles cancellation in base.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTaskHandlesCancellationInBase()
     {
         var statusTrail = new List<(int, string)>();
@@ -252,7 +252,7 @@ public class SignalFromTaskTest
     /// Signals from task handles completion.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTaskHandlesCompletion()
     {
         var statusTrail = new List<(int, string)>();
@@ -311,7 +311,7 @@ public class SignalFromTaskTest
     /// Signals from task t handles user exceptions.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTask_T_HandlesUserExceptions()
     {
         var statusTrail = new List<(int, string)>();
@@ -373,7 +373,7 @@ public class SignalFromTaskTest
     /// Signals from task t handles cancellation.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTask_T_HandlesCancellation()
     {
         var statusTrail = new List<(int, string)>();
@@ -432,7 +432,7 @@ public class SignalFromTaskTest
     /// Signals from task t handles token cancellation.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTask_T_HandlesTokenCancellation()
     {
         var statusTrail = new List<(int, string)>();
@@ -497,7 +497,7 @@ public class SignalFromTaskTest
     /// Signals from task t handles cancellation in base.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTask_T_HandlesCancellationInBase()
     {
         var statusTrail = new List<(int, string)>();
@@ -542,7 +542,7 @@ public class SignalFromTaskTest
     /// Signals from task t handles completion.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-    [Fact]
+    [Test]
     public async Task SignalFromTask_T_HandlesCompletion()
     {
         var statusTrail = new List<(int, string)>();

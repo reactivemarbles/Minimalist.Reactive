@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -10,11 +10,13 @@ namespace Minimalist.Reactive.Concurrency;
 /// Abstract base class for scheduled work items.
 /// </summary>
 /// <typeparam name="TAbsolute">Absolute time representation type.</typeparam>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, IComparable<ScheduledItem<TAbsolute>>, IsDisposed
     where TAbsolute : IComparable<TAbsolute>
 {
     private readonly IComparer<TAbsolute> _comparer;
-    private SingleDisposable? _disposable;
+    private IDisposable? _disposable;
+    private int _isDisposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScheduledItem{TAbsolute}"/> class.
@@ -38,7 +40,7 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// <summary>
     /// Gets a value indicating whether gets whether the work item has received a cancellation request.
     /// </summary>
-    public bool IsDisposed => _disposable?.IsDisposed == true;
+    public bool IsDisposed => Volatile.Read(ref _isDisposed) != 0;
 
     /// <summary>
     /// Determines whether two specified <see cref="ScheduledItem{TAbsolute, TValue}" /> objects are inequal.
@@ -97,7 +99,7 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// <summary>
     /// Cancels the work item by disposing the resource returned by <see cref="InvokeCore"/> as soon as possible.
     /// </summary>
-    public void Cancel() => _disposable?.Dispose();
+    public void Cancel() => Dispose();
 
     /// <summary>
     /// Compares the work item with another work item based on absolute time values.
@@ -143,9 +145,22 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// </summary>
     public void Invoke()
     {
-        if (_disposable?.IsDisposed == false)
+        if (IsDisposed)
         {
-            _disposable = InvokeCore().DisposeWith();
+            return;
+        }
+
+        var disposable = InvokeCore() ?? Disposable.Empty;
+        var previous = Interlocked.CompareExchange(ref _disposable, disposable, null);
+        if (previous != null)
+        {
+            disposable.Dispose();
+            return;
+        }
+
+        if (IsDisposed)
+        {
+            disposable.Dispose();
         }
     }
 
@@ -155,9 +170,9 @@ public abstract class ScheduledItem<TAbsolute> : IScheduledItem<TAbsolute>, ICom
     /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposable?.IsDisposed == false && disposing)
+        if (disposing && Interlocked.Exchange(ref _isDisposed, 1) == 0)
         {
-            _disposable.Dispose();
+            Interlocked.Exchange(ref _disposable, Disposable.Empty)?.Dispose();
         }
     }
 

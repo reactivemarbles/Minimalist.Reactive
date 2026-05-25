@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using Minimalist.Reactive.Concurrency;
 using Minimalist.Reactive.Disposables;
-using Xunit;
+using TUnit.Core;
 
 namespace Minimalist.Reactive.Tests;
 
@@ -18,7 +18,7 @@ public class ConcurencyTests
     /// <summary>
     /// Tests this instance.
     /// </summary>
-    [Fact]
+    [Test]
     public void TestCreate()
     {
         var scheduler = TaskPoolScheduler.Instance;
@@ -30,7 +30,7 @@ public class ConcurencyTests
     /// <summary>
     /// Tasks the pool now.
     /// </summary>
-    [Fact]
+    [Test]
     public void TaskPoolNow()
     {
         var res = TaskPoolScheduler.Instance.Now - DateTime.Now;
@@ -40,7 +40,7 @@ public class ConcurencyTests
     /// <summary>
     /// Tasks the pool schedule action.
     /// </summary>
-    [Fact]
+    [Test]
     public void TaskPoolScheduleAction()
     {
         var id = Environment.CurrentManagedThreadId;
@@ -57,7 +57,7 @@ public class ConcurencyTests
     /// <summary>
     /// Tasks the pool schedule action due now.
     /// </summary>
-    [Fact]
+    [Test]
     public void TaskPoolScheduleActionDueNow()
     {
         var id = Environment.CurrentManagedThreadId;
@@ -74,7 +74,7 @@ public class ConcurencyTests
     /// <summary>
     /// Tasks the pool schedule action due.
     /// </summary>
-    [Fact]
+    [Test]
     public void TaskPoolScheduleActionDue()
     {
         var id = Environment.CurrentManagedThreadId;
@@ -91,7 +91,7 @@ public class ConcurencyTests
     /// <summary>
     /// Tasks the pool schedule action cancel.
     /// </summary>
-    [Fact]
+    [Test]
     public void TaskPoolScheduleActionCancel()
     {
         var id = Environment.CurrentManagedThreadId;
@@ -106,7 +106,7 @@ public class ConcurencyTests
     /// <summary>
     /// Tasks the pool delay larger than int maximum value.
     /// </summary>
-    [Fact]
+    [Test]
     public void TaskPoolDelayLargerThanIntMaxValue()
     {
         var dueTime = TimeSpan.FromMilliseconds((double)int.MaxValue + 1);

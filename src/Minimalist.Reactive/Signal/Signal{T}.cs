@@ -1,7 +1,9 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
+using System.Runtime.ExceptionServices;
+using Minimalist.Reactive.Core;
 using Minimalist.Reactive.Disposables;
 
 namespace Minimalist.Reactive.Signals;
@@ -10,22 +12,32 @@ namespace Minimalist.Reactive.Signals;
 /// Subject.
 /// </summary>
 /// <typeparam name="T">The Type.</typeparam>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class Signal<T> : ISignal<T>
 {
-    private static readonly ObserverHandler[] disposedCompare = new ObserverHandler[0];
-    private static readonly ObserverHandler[] terminatedCompare = new ObserverHandler[0];
-    private ObserverHandler[] _observers = Array.Empty<ObserverHandler>();
+    private static readonly Action<T> NoopOnNext = static _ => { };
+    private static readonly Action<T> ThrowDisposedOnNext = static _ => ThrowDisposed();
+
+    private readonly object _observerLock = new();
     private Exception? _exception;
+    private IObserver<T> _outObserver = EmptyWitness<T>.Instance;
+    private Action<T> _onNext = NoopOnNext;
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "The subscription is owned by the caller; Signal only keeps a removal token and clears it on disposal.")]
+    private ActionSubscription? _singleSubscription;
+
+    private bool _isDisposed;
+    private bool _isStopped;
 
     /// <summary>
     /// Gets a value indicating whether indicates whether the subject has observers subscribed to it.
     /// </summary>
-    public virtual bool HasObservers => Volatile.Read(ref _observers).Length != 0;
+    public virtual bool HasObservers => (_singleSubscription != null || (!ReferenceEquals(_outObserver, EmptyWitness<T>.Instance) && !ReferenceEquals(_outObserver, DisposedWitness<T>.Instance))) && !_isStopped;
 
     /// <summary>
     /// Gets a value indicating whether indicates whether the subject has been disposed.
     /// </summary>
-    public virtual bool IsDisposed => Volatile.Read(ref _observers) == disposedCompare;
+    public virtual bool IsDisposed => _isDisposed;
 
     /// <summary>
     /// Releases unmanaged and - optionally - managed resources.
@@ -41,33 +53,36 @@ public class Signal<T> : ISignal<T>
     /// </summary>
     public void OnCompleted()
     {
-#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-        for (; ; )
+        IObserver<T> old;
+        var direct = false;
+        lock (_observerLock)
         {
-            var observers = Volatile.Read(ref _observers);
-            if (observers == disposedCompare)
+            ThrowIfDisposed();
+            if (_isStopped)
             {
-                _exception = null;
-                ThrowDisposed();
-                break;
+                return;
             }
 
-            if (observers == terminatedCompare)
+            if (_singleSubscription != null)
             {
-                break;
+                ClearSingleActionObserver();
+                old = EmptyWitness<T>.Instance;
+                direct = true;
+            }
+            else
+            {
+                old = _outObserver;
+                _outObserver = EmptyWitness<T>.Instance;
+                _onNext = NoopOnNext;
             }
 
-            if (Interlocked.CompareExchange(ref _observers, terminatedCompare, observers) == observers)
-            {
-                foreach (var observer in observers)
-                {
-                    observer.Observer?.OnCompleted();
-                }
-
-                break;
-            }
+            _isStopped = true;
         }
-#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+
+        if (!direct)
+        {
+            old.OnCompleted();
+        }
     }
 
     /// <summary>
@@ -81,55 +96,47 @@ public class Signal<T> : ISignal<T>
             throw new ArgumentNullException(nameof(error));
         }
 
-#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-        for (; ; )
+        IObserver<T> old;
+        var direct = false;
+        lock (_observerLock)
         {
-            var observers = Volatile.Read(ref _observers);
-            if (observers == disposedCompare)
+            ThrowIfDisposed();
+            if (_isStopped)
             {
-                _exception = null;
-                ThrowDisposed();
-                break;
-            }
-
-            if (observers == terminatedCompare)
-            {
-                break;
+                return;
             }
 
             _exception = error;
-            if (Interlocked.CompareExchange(ref _observers, terminatedCompare, observers) == observers)
+            if (_singleSubscription != null)
             {
-                foreach (var observer in observers)
-                {
-                    observer.Observer?.OnError(error);
-                }
-
-                break;
+                ClearSingleActionObserver();
+                old = EmptyWitness<T>.Instance;
+                direct = true;
             }
+            else
+            {
+                old = _outObserver;
+                _outObserver = EmptyWitness<T>.Instance;
+                _onNext = NoopOnNext;
+            }
+
+            _isStopped = true;
         }
-#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+
+        if (direct)
+        {
+            ExceptionDispatchInfo.Capture(error).Throw();
+            return;
+        }
+
+        old.OnError(error);
     }
 
     /// <summary>
     /// Called when [next].
     /// </summary>
     /// <param name="value">The value.</param>
-    public void OnNext(T value)
-    {
-        var observers = Volatile.Read(ref _observers);
-        if (observers == disposedCompare)
-        {
-            _exception = null;
-            ThrowDisposed();
-            return;
-        }
-
-        foreach (var observer in observers)
-        {
-            observer.Observer?.OnNext(value);
-        }
-    }
+    public void OnNext(T value) => _onNext(value);
 
     /// <summary>
     /// Subscribes the specified observer.
@@ -145,47 +152,77 @@ public class Signal<T> : ISignal<T>
             throw new ArgumentNullException(nameof(observer));
         }
 
-        var disposable = default(ObserverHandler);
-#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-        for (; ; )
-        {
-            var observers = Volatile.Read(ref _observers);
-            if (observers == disposedCompare)
-            {
-                _exception = null;
-                ThrowDisposed();
-                break;
-            }
+        Exception? ex;
+        bool stopped;
+        ObserverHandler? subscription = null;
 
-            if (observers == terminatedCompare)
+        lock (_observerLock)
+        {
+            ThrowIfDisposed();
+            stopped = _isStopped;
+            ex = _exception;
+            if (!stopped)
             {
-                var ex = _exception;
-                if (ex != null)
+                subscription = new ObserverHandler(this, observer);
+                AddObserver(observer);
+            }
+        }
+
+        if (subscription != null)
+        {
+            return subscription;
+        }
+
+        if (ex != null)
+        {
+            observer.OnError(ex);
+        }
+        else
+        {
+            observer.OnCompleted();
+        }
+
+        return Disposable.Empty;
+    }
+
+    internal IDisposable SubscribeAction(Action<T> onNext)
+    {
+        Exception? ex;
+        bool stopped;
+        IDisposable? subscription = null;
+
+        lock (_observerLock)
+        {
+            ThrowIfDisposed();
+            stopped = _isStopped;
+            ex = _exception;
+            if (!stopped)
+            {
+                if (ReferenceEquals(_outObserver, EmptyWitness<T>.Instance) && _singleSubscription == null)
                 {
-                    observer.OnError(ex);
+                    var directSubscription = new ActionSubscription(this);
+                    _onNext = onNext!;
+                    _singleSubscription = directSubscription;
+                    subscription = directSubscription;
                 }
                 else
                 {
-                    observer.OnCompleted();
+                    var observer = new DirectActionObserver(onNext!);
+                    subscription = new ObserverHandler(this, observer);
+                    AddObserver(observer);
                 }
-
-                break;
-            }
-
-            disposable ??= new ObserverHandler(this, observer);
-
-            var n = observers.Length;
-            var b = new ObserverHandler[n + 1];
-
-            Array.Copy(observers, 0, b, 0, n);
-
-            b[n] = disposable;
-            if (Interlocked.CompareExchange(ref _observers, b, observers) == observers)
-            {
-                return disposable;
             }
         }
-#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+
+        if (subscription != null)
+        {
+            return subscription;
+        }
+
+        if (ex != null)
+        {
+            ExceptionDispatchInfo.Capture(ex).Throw();
+        }
 
         return Disposable.Empty;
     }
@@ -200,66 +237,154 @@ public class Signal<T> : ISignal<T>
         {
             if (disposing)
             {
-                Interlocked.Exchange(ref _observers, disposedCompare);
-                _exception = null;
+                lock (_observerLock)
+                {
+                    _outObserver = DisposedWitness<T>.Instance;
+                    _exception = null;
+                    ClearSingleActionObserver();
+                    _onNext = ThrowDisposedOnNext;
+                    _isDisposed = true;
+                }
             }
         }
     }
 
     private static void ThrowDisposed() => throw new ObjectDisposedException(string.Empty);
 
-    private void RemoveObserver(ObserverHandler observer)
+    private void ThrowIfDisposed()
     {
-#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-        for (; ; )
+        if (IsDisposed)
         {
-            var a = Volatile.Read(ref _observers);
-            var n = a.Length;
-            if (n == 0)
+            ThrowDisposed();
+        }
+    }
+
+    private void AddObserver(IObserver<T> observer)
+    {
+        PromoteSingleActionObserver();
+        if (_outObserver is ListWitness<T> listObserver)
+        {
+            _outObserver = listObserver.Add(observer);
+        }
+        else
+        {
+            var current = _outObserver;
+            if (ReferenceEquals(current, EmptyWitness<T>.Instance))
             {
-                break;
-            }
-
-            var j = Array.IndexOf(a, observer);
-
-            if (j < 0)
-            {
-                break;
-            }
-
-            ObserverHandler[] b;
-
-            if (n == 1)
-            {
-                b = Array.Empty<ObserverHandler>();
+                _outObserver = observer;
             }
             else
             {
-                b = new ObserverHandler[n - 1];
-                Array.Copy(a, 0, b, 0, j);
-                Array.Copy(a, j + 1, b, j, n - j - 1);
-            }
-
-            if (Interlocked.CompareExchange(ref _observers, b, a) == a)
-            {
-                break;
+                _outObserver = new ListWitness<T>(new ImmutableList<IObserver<T>>(new[] { current, observer }));
             }
         }
-#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+
+        _onNext = DispatchObserver;
     }
 
-    private class ObserverHandler : IDisposable
+    private void RemoveActionObserver(ActionSubscription subscription)
+    {
+        lock (_observerLock)
+        {
+            if (ReferenceEquals(_singleSubscription, subscription))
+            {
+                ClearSingleActionObserver();
+            }
+        }
+    }
+
+    private void RemoveObserver(IObserver<T> observer)
+    {
+        lock (_observerLock)
+        {
+            if (ReferenceEquals(_outObserver, observer))
+            {
+                _outObserver = EmptyWitness<T>.Instance;
+                _onNext = NoopOnNext;
+            }
+            else if (_outObserver is ListWitness<T> listObserver)
+            {
+                _outObserver = listObserver.Remove(observer);
+                _onNext = ReferenceEquals(_outObserver, EmptyWitness<T>.Instance) ? NoopOnNext : DispatchObserver;
+            }
+        }
+    }
+
+    private void ClearSingleActionObserver()
+    {
+        _singleSubscription = null;
+        _onNext = NoopOnNext;
+    }
+
+    private void PromoteSingleActionObserver()
+    {
+        if (_singleSubscription == null)
+        {
+            return;
+        }
+
+        var singleObserver = new DirectActionObserver(_onNext);
+        _singleSubscription.Observer = singleObserver;
+        _singleSubscription = null;
+        _outObserver = singleObserver;
+    }
+
+    private void DispatchObserver(T value) => _outObserver.OnNext(value);
+
+    private sealed class DirectActionObserver : IObserver<T>
+    {
+        private readonly Action<T> _onNext;
+
+        public DirectActionObserver(Action<T> onNext) => _onNext = onNext;
+
+        public void OnCompleted()
+        {
+        }
+
+        public void OnError(Exception error) => ExceptionDispatchInfo.Capture(error).Throw();
+
+        public void OnNext(T value) => _onNext(value);
+    }
+
+    private sealed class ActionSubscription : IDisposable
+    {
+        private Signal<T>? _subject;
+
+        public ActionSubscription(Signal<T> subject) => _subject = subject;
+
+        public IObserver<T>? Observer { get; set; }
+
+        public void Dispose()
+        {
+            var subject = Interlocked.Exchange(ref _subject, null);
+            if (subject == null)
+            {
+                return;
+            }
+
+            var observer = Observer;
+            if (observer == null)
+            {
+                subject.RemoveActionObserver(this);
+            }
+            else
+            {
+                subject.RemoveObserver(observer);
+                Observer = null;
+            }
+        }
+    }
+
+    private sealed class ObserverHandler : IDisposable
     {
         private IObserver<T>? _observer;
-        private Signal<T> _subject;
+        private Signal<T>? _subject;
 
         public ObserverHandler(Signal<T> subject, IObserver<T> observer)
         {
             _subject = subject;
             _observer = observer;
         }
-
-        public IObserver<T>? Observer => _observer;
 
         public void Dispose()
         {
@@ -269,8 +394,8 @@ public class Signal<T> : ISignal<T>
                 return;
             }
 
-            _subject.RemoveObserver(this);
-            _subject = null!;
+            var subject = Interlocked.Exchange(ref _subject, null);
+            subject?.RemoveObserver(observer);
         }
     }
 }

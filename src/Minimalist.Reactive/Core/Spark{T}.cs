@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -16,6 +16,7 @@ namespace Minimalist.Reactive.Core
     [Serializable]
 #pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
 #pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public abstract class Spark<T> : IEquatable<Spark<T>>
 #pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
@@ -72,7 +73,8 @@ namespace Minimalist.Reactive.Core
         /// This means two Spark&lt;T&gt; objects can be equal even though they don't represent the same observer method call, but have the same Kind and have equal parameters passed to the observer method.
         /// In case one wants to determine whether two Spark&lt;T&gt; objects represent a different observer method call, use Object.ReferenceEquals identity equality instead.
         /// </remarks>
-        public static bool operator ==(Spark<T> left, Spark<T> right) => left == right;
+        public static bool operator ==(Spark<T>? left, Spark<T>? right) =>
+            ReferenceEquals(left, right) || (left is not null && left.Equals(right));
 
         /// <summary>
         /// Determines whether the current Spark&lt;T&gt; object has the same observer message payload as a specified Spark&lt;T&gt; value.

@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Minimalist.Reactive.Signals;
-using Xunit;
+using TUnit.Core;
 
 namespace Minimalist.Reactive.Tests;
 
@@ -18,21 +18,21 @@ public class AsyncSignalTests
     /// <summary>
     /// Subscribes the argument checking.
     /// </summary>
-    [Fact]
+    [Test]
     public void Subscribe_ArgumentChecking() =>
         Assert.Throws<ArgumentNullException>(() => new AsyncSignal<int>().Subscribe(null!));
 
     /// <summary>
     /// Called when [error argument checking].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnError_ArgumentChecking() =>
         Assert.Throws<ArgumentNullException>(() => new AsyncSignal<int>().OnError(null!));
 
     /// <summary>
     /// Awaits the blocking.
     /// </summary>
-    [Fact]
+    [Test]
     public void Await_Blocking()
     {
         var s = new AsyncSignal<int>();
@@ -42,7 +42,7 @@ public class AsyncSignalTests
     /// <summary>
     /// Awaits the throw.
     /// </summary>
-    [Fact]
+    [Test]
     public void Await_Throw()
     {
         var s = new AsyncSignal<int>();
@@ -52,7 +52,7 @@ public class AsyncSignalTests
     /// <summary>
     /// Gets the result empty.
     /// </summary>
-    [Fact]
+    [Test]
     public void GetResult_Empty()
     {
         var s = new AsyncSignal<int>();
@@ -63,19 +63,19 @@ public class AsyncSignalTests
     /// <summary>
     /// Gets the result blocking.
     /// </summary>
-    [Fact]
+    [Test]
     public void GetResult_Blocking() => GetResult_BlockingImpl(new AsyncSignal<int>());
 
     /// <summary>
     /// Gets the result blocking throw.
     /// </summary>
-    [Fact]
+    [Test]
     public void GetResult_Blocking_Throw() => GetResult_Blocking_ThrowImpl(new AsyncSignal<int>());
 
     /// <summary>
     /// Gets the result context.
     /// </summary>
-    [Fact]
+    [Test]
     public void GetResult_Context()
     {
         var x = new AsyncSignal<int>();
@@ -102,7 +102,7 @@ public class AsyncSignalTests
     /// <summary>
     /// Determines whether this instance has observers.
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers()
     {
         var s = new AsyncSignal<int>();
@@ -130,7 +130,7 @@ public class AsyncSignalTests
     /// <summary>
     /// Determines whether [has observers dispose1].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose1()
     {
         var s = new AsyncSignal<int>();
@@ -153,7 +153,7 @@ public class AsyncSignalTests
     /// <summary>
     /// Determines whether [has observers dispose2].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose2()
     {
         var s = new AsyncSignal<int>();
@@ -176,7 +176,7 @@ public class AsyncSignalTests
     /// <summary>
     /// Determines whether [has observers dispose3].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_Dispose3()
     {
         var s = new AsyncSignal<int>();
@@ -191,7 +191,7 @@ public class AsyncSignalTests
     /// <summary>
     /// Determines whether [has observers on completed].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_OnCompleted()
     {
         var s = new AsyncSignal<int>();
@@ -210,7 +210,7 @@ public class AsyncSignalTests
     /// <summary>
     /// Determines whether [has observers on error].
     /// </summary>
-    [Fact]
+    [Test]
     public void HasObservers_OnError()
     {
         var s = new AsyncSignal<int>();

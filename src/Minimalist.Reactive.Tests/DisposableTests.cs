@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using Minimalist.Reactive.Disposables;
-using Xunit;
+using TUnit.Core;
 
 namespace Minimalist.Reactive.Tests;
 
@@ -15,7 +15,7 @@ public class DisposableTests
     /// <summary>
     /// Called when [dispose once].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnlyDisposeOnce()
     {
         var disposed = 0;
@@ -33,7 +33,7 @@ public class DisposableTests
     /// <summary>
     /// Empties the disposable.
     /// </summary>
-    [Fact]
+    [Test]
     public void EmptyDisposable()
     {
         var disposable = Disposable.Empty;
@@ -45,7 +45,7 @@ public class DisposableTests
     /// <summary>
     /// Singles the disposable dispose.
     /// </summary>
-    [Fact]
+    [Test]
     public void SingleDisposableDispose()
     {
         var disposable = new SingleDisposable(Disposable.Empty);
@@ -56,7 +56,7 @@ public class DisposableTests
     /// <summary>
     /// Singles the disposable dispose with action.
     /// </summary>
-    [Fact]
+    [Test]
     public void SingleDisposableDisposeWithAction()
     {
         var disposed = 0;
@@ -77,7 +77,7 @@ public class DisposableTests
     /// <summary>
     /// Multiples the disposable dispose.
     /// </summary>
-    [Fact]
+    [Test]
     public void MultipleDisposableDispose()
     {
         var disposable = new MultipleDisposable();
@@ -88,7 +88,7 @@ public class DisposableTests
     /// <summary>
     /// Multiples the disposable with items dispose.
     /// </summary>
-    [Fact]
+    [Test]
     public void MultipleDisposableWithItemsDispose()
     {
         var disposable = new MultipleDisposable();

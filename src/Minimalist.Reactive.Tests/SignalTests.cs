@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Minimalist.Reactive.Signals;
-using Xunit;
+using TUnit.Core;
 
 namespace Minimalist.Reactive.Tests;
 
@@ -18,7 +18,7 @@ public class SignalTests
     /// <summary>
     /// Called when [next].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnNext()
     {
         var subject = new Signal<int>();
@@ -41,7 +41,7 @@ public class SignalTests
     /// <summary>
     /// Called when [next disposed].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnNextDisposed()
     {
         var subject = new Signal<int>();
@@ -54,7 +54,7 @@ public class SignalTests
     /// <summary>
     /// Called when [next disposed subscriber].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnNextDisposedSubscriber()
     {
         var subject = new Signal<int>();
@@ -70,7 +70,7 @@ public class SignalTests
     /// <summary>
     /// Called when [completed].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnCompleted()
     {
         var subject = new Signal<int>();
@@ -86,7 +86,7 @@ public class SignalTests
     /// <summary>
     /// Called when [completed no op].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnCompleted_NoErrors()
     {
         var subject = new Signal<int>();
@@ -99,7 +99,7 @@ public class SignalTests
     /// <summary>
     /// Called when [completed once].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnCompletedOnce()
     {
         var subject = new Signal<int>();
@@ -119,7 +119,7 @@ public class SignalTests
     /// <summary>
     /// Called when [completed disposed].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnCompletedDisposed()
     {
         var subject = new Signal<int>();
@@ -132,7 +132,7 @@ public class SignalTests
     /// <summary>
     /// Called when [completed disposed subscriber].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnCompletedDisposedSubscriber()
     {
         var subject = new Signal<int>();
@@ -148,7 +148,7 @@ public class SignalTests
     /// <summary>
     /// Called when [error].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnError()
     {
         var subject = new Signal<int>();
@@ -164,7 +164,7 @@ public class SignalTests
     /// <summary>
     /// Called when [error once].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnErrorOnce()
     {
         var subject = new Signal<int>();
@@ -184,7 +184,7 @@ public class SignalTests
     /// <summary>
     /// Called when [error disposed].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnErrorDisposed()
     {
         var subject = new Signal<int>();
@@ -197,7 +197,7 @@ public class SignalTests
     /// <summary>
     /// Called when [error disposed subscriber].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnErrorDisposedSubscriber()
     {
         var subject = new Signal<int>();
@@ -213,7 +213,7 @@ public class SignalTests
     /// <summary>
     /// Called when [error rethrows by default].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnErrorRethrowsByDefault()
     {
         var subject = new Signal<int>();
@@ -226,21 +226,21 @@ public class SignalTests
     /// <summary>
     /// Called when [error null throws].
     /// </summary>
-    [Fact]
+    [Test]
     public void OnErrorNullThrows() =>
         Assert.Throws<ArgumentNullException>(() => new Signal<int>().OnError(null!));
 
     /// <summary>
     /// Subscribes the null throws.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubscribeNullThrows() =>
         Assert.Throws<ArgumentNullException>(() => new Signal<int>().Subscribe(null!));
 
     /// <summary>
     /// Subscribes the disposed throws.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubscribeDisposedThrows()
     {
         var subject = new Signal<int>();
@@ -253,7 +253,7 @@ public class SignalTests
     /// <summary>
     /// Subscribes the on completed.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubscribeOnCompleted()
     {
         var subject = new Signal<int>();
@@ -268,7 +268,7 @@ public class SignalTests
     /// <summary>
     /// Subscribes the on error.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubscribeOnError()
     {
         var subject = new Signal<int>();
@@ -281,9 +281,43 @@ public class SignalTests
     }
 
     /// <summary>
+    /// Subscribes action observers, converts to multi-observer dispatch, and removes each observer independently.
+    /// </summary>
+    [Test]
+    public void SubscribeActionObservers_DisposeIndependently()
+    {
+        var subject = new Signal<int>();
+        var first = 0;
+        var second = 0;
+
+        var firstSubscription = subject.Subscribe(i => first += i);
+        Assert.True(subject.HasObservers);
+
+        var secondSubscription = subject.Subscribe(i => second += i);
+        subject.OnNext(1);
+
+        Assert.Equal(1, first);
+        Assert.Equal(1, second);
+
+        firstSubscription.Dispose();
+        subject.OnNext(2);
+
+        Assert.Equal(1, first);
+        Assert.Equal(3, second);
+        Assert.True(subject.HasObservers);
+
+        secondSubscription.Dispose();
+        subject.OnNext(4);
+
+        Assert.Equal(1, first);
+        Assert.Equal(3, second);
+        Assert.False(subject.HasObservers);
+    }
+
+    /// <summary>
     /// Subjects the where.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubjectWhere()
     {
         var subject = new Signal<int>();
@@ -297,7 +331,7 @@ public class SignalTests
     /// <summary>
     /// Subjects the select.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubjectSelect()
     {
         var subject = new Signal<int>();
@@ -309,7 +343,7 @@ public class SignalTests
     /// <summary>
     /// Subjects the buffer.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubjectBuffer()
     {
         var subject = new Signal<int>();
@@ -330,7 +364,7 @@ public class SignalTests
     /// <summary>
     /// Subjects the buffer skip2.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubjectBufferTake2Skip2()
     {
         var subject = new Signal<int>();
@@ -354,7 +388,7 @@ public class SignalTests
     /// <summary>
     /// Subjects the rx void.
     /// </summary>
-    [Fact]
+    [Test]
     public void SubjectRxVoid()
     {
         var subject = new Signal<RxVoid>();
