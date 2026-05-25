@@ -8,20 +8,31 @@ using Minimalist.Reactive.Disposables;
 namespace Minimalist.Reactive.Signals.Core;
 
 [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-internal sealed class ImmutableEmptySignal<T> : IRequireCurrentThread<T>
+internal sealed class RepeatSignal<T> : IObservable<T>, IRequireCurrentThread<T>
 {
-#pragma warning disable SA1401 // Fields should be private
-    internal static ImmutableEmptySignal<T> Instance = new();
-#pragma warning restore SA1401 // Fields should be private
+    private readonly T _value;
+    private readonly int _count;
 
-    private ImmutableEmptySignal()
+    public RepeatSignal(T value, int count)
     {
+        _value = value;
+        _count = count;
     }
 
     public bool IsRequiredSubscribeOnCurrentThread() => false;
 
     public IDisposable Subscribe(IObserver<T> observer)
     {
+        if (observer == null)
+        {
+            throw new ArgumentNullException(nameof(observer));
+        }
+
+        for (var i = 0; i < _count; i++)
+        {
+            observer.OnNext(_value);
+        }
+
         observer.OnCompleted();
         return Disposable.Empty;
     }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -6,6 +6,7 @@ using Minimalist.Reactive.Disposables;
 
 namespace Minimalist.Reactive.Signals.Core;
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 internal class CatchSignal<T, TException> : SignalsBase<T>
         where TException : Exception
 {
@@ -33,8 +34,8 @@ internal class CatchSignal<T, TException> : SignalsBase<T>
 
         public IDisposable Run()
         {
-            _sourceSubscription = new SingleDisposable(_parent._source.Subscribe(this));
             _exceptionSubscription = new SingleDisposable();
+            _sourceSubscription = new SingleDisposable(_parent._source.Subscribe(this));
 
             return new MultipleDisposable(_sourceSubscription, _exceptionSubscription);
         }

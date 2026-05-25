@@ -8,20 +8,31 @@ using Minimalist.Reactive.Disposables;
 namespace Minimalist.Reactive.Signals.Core;
 
 [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-internal sealed class ImmutableEmptySignal<T> : IRequireCurrentThread<T>
+internal sealed class RangeSignal : IObservable<int>, IRequireCurrentThread<int>
 {
-#pragma warning disable SA1401 // Fields should be private
-    internal static ImmutableEmptySignal<T> Instance = new();
-#pragma warning restore SA1401 // Fields should be private
+    private readonly int _start;
+    private readonly int _count;
 
-    private ImmutableEmptySignal()
+    public RangeSignal(int start, int count)
     {
+        _start = start;
+        _count = count;
     }
 
     public bool IsRequiredSubscribeOnCurrentThread() => false;
 
-    public IDisposable Subscribe(IObserver<T> observer)
+    public IDisposable Subscribe(IObserver<int> observer)
     {
+        if (observer == null)
+        {
+            throw new ArgumentNullException(nameof(observer));
+        }
+
+        for (var i = 0; i < _count; i++)
+        {
+            observer.OnNext(_start + i);
+        }
+
         observer.OnCompleted();
         return Disposable.Empty;
     }
