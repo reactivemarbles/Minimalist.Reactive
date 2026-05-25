@@ -224,6 +224,48 @@ public class FactoryOperatorContractTests
     }
 
     [Test]
+    public async Task SystemReactiveNamedAliasesCoverMigrationConvenienceSurface()
+    {
+        var values = new List<int>();
+        var sideEffects = new List<int>();
+        var recovered = new List<int>();
+        var observed = new List<int>();
+        var clock = new TestClock();
+        var source = new Signal<int>();
+
+        Signal.FromEnumerable(new[] { 2, 3 })
+            .StartWith(new[] { 0, 1 })
+            .Do(sideEffects.Add)
+            .AsObservable()
+            .Subscribe(values.Add);
+
+        Signal.Throw<int>(new InvalidOperationException("recover"))
+            .Catch(_ => Signal.Return(42))
+            .Subscribe(recovered.Add);
+
+        source.ObserveOn(clock).Subscribe(observed.Add);
+        source.OnNext(7);
+
+        Assert.Equal(new[] { 0, 1, 2, 3 }, values);
+        Assert.Equal((IEnumerable<int>)values, sideEffects);
+        Assert.Equal(new[] { 42 }, recovered);
+        Assert.Equal(0, observed.Count);
+
+        clock.Start();
+
+        Assert.Equal(new[] { 7 }, observed);
+
+        var converted = new[] { 4, 5 }.ToObservable();
+        var last = await converted.ToTask();
+        var first = await Signal.FromEnumerable(new[] { 9, 10 }).FirstAsync().ToTask();
+        var started = await Signal.Start(() => 11, Scheduler.CurrentThread).ToTask();
+
+        Assert.Equal(5, last);
+        Assert.Equal(9, first);
+        Assert.Equal(11, started);
+    }
+
+    [Test]
     public void BoundaryAndLatestOperatorsUseVirtualTimeAndCompletionSemantics()
     {
         var clock = new TestClock();

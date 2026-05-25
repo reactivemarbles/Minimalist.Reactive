@@ -19,6 +19,11 @@ public static partial class Scheduler
     /// </summary>
     public static ImmediateScheduler Immediate => ImmediateScheduler.Instance;
 
+    /// <summary>
+    /// Gets the default queueing scheduler for background work.
+    /// </summary>
+    public static IScheduler Default => TaskPoolScheduler.Default;
+
     internal static DateTimeOffset Now => DateTime.UtcNow;
 
     /// <summary>

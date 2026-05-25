@@ -14,7 +14,10 @@ namespace Minimalist.Reactive.Concurrency
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public sealed class ThreadPoolScheduler : IScheduler
     {
-        internal static readonly ThreadPoolScheduler Instance = new();
+        /// <summary>
+        /// Gets the shared thread-pool scheduler instance.
+        /// </summary>
+        public static readonly ThreadPoolScheduler Instance = new();
         internal static readonly object Gate = new();
         internal static readonly Dictionary<System.Threading.Timer, object> Timers = new();
 

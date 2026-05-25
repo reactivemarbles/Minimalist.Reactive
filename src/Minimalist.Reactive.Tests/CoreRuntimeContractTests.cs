@@ -159,6 +159,14 @@ public class CoreRuntimeContractTests
     }
 
     [Test]
+    public void SchedulerDefaultAliasesExposeMigrationFriendlyNames()
+    {
+        Assert.Same(TaskPoolScheduler.Instance, TaskPoolScheduler.Default);
+        Assert.Same(TaskPoolScheduler.Default, Scheduler.Default);
+        Assert.Same(ThreadPoolScheduler.Instance, ThreadPoolScheduler.Instance);
+    }
+
+    [Test]
     public void NullableValueTimeStructsUseDeterministicNullHashCodes()
     {
         var timestamp = new DateTimeOffset(2026, 5, 24, 22, 52, 0, TimeSpan.Zero);

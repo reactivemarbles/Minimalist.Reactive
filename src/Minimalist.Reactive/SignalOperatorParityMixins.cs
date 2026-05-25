@@ -48,6 +48,135 @@ public static partial class LinqMixins
     }
 
     /// <summary>
+    /// Prepends a value before the source sequence using the System.Reactive operator name.
+    /// </summary>
+    public static IObservable<T> StartWith<T>(this IObservable<T> source, T value) => source.Prepend(value);
+
+    /// <summary>
+    /// Prepends values before the source sequence using the System.Reactive operator name.
+    /// </summary>
+    public static IObservable<T> StartWith<T>(this IObservable<T> source, params T[] values)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (values == null)
+        {
+            throw new ArgumentNullException(nameof(values));
+        }
+
+        return Signal.Concat(Signal.FromEnumerable(values), source);
+    }
+
+    /// <summary>
+    /// Prepends values before the source sequence using the System.Reactive operator name.
+    /// </summary>
+    public static IObservable<T> StartWith<T>(this IObservable<T> source, IEnumerable<T> values)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (values == null)
+        {
+            throw new ArgumentNullException(nameof(values));
+        }
+
+        return Signal.Concat(Signal.FromEnumerable(values), source);
+    }
+
+    /// <summary>
+    /// Returns the source as an observable. This is an identity adapter for BCL observable sources.
+    /// </summary>
+    public static IObservable<T> AsObservable<T>(this IObservable<T> source) => source ?? throw new ArgumentNullException(nameof(source));
+
+    /// <summary>
+    /// Converts an enumerable sequence to a Minimalist signal using the System.Reactive conversion name.
+    /// </summary>
+    public static IObservable<T> ToObservable<T>(this IEnumerable<T> values) => Signal.FromEnumerable(values);
+
+    /// <summary>
+    /// Schedules observer notifications on the supplied scheduler using the System.Reactive operator name.
+    /// </summary>
+    public static IObservable<T> ObserveOn<T>(this IObservable<T> source, IScheduler scheduler)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (scheduler == null)
+        {
+            throw new ArgumentNullException(nameof(scheduler));
+        }
+
+        return Signal.WitnessOn(source, scheduler);
+    }
+
+    /// <summary>
+    /// Alias for <see cref="DelayStart{T}(IObservable{T}, TimeSpan, IScheduler?)"/> using the System.Reactive operator name.
+    /// </summary>
+    public static IObservable<T> DelaySubscription<T>(this IObservable<T> source, TimeSpan dueTime, IScheduler? scheduler = null) =>
+        source.DelayStart(dueTime, scheduler);
+
+    /// <summary>
+    /// Runs a side effect for each source value using the System.Reactive operator name.
+    /// </summary>
+    public static IObservable<T> Do<T>(this IObservable<T> source, Action<T> onNext) => source.Tap(onNext);
+
+    /// <summary>
+    /// Runs side effects for source notifications using the System.Reactive operator name.
+    /// </summary>
+    public static IObservable<T> Do<T>(this IObservable<T> source, Action<T> onNext, Action<Exception> onError, Action onCompleted)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (onNext == null)
+        {
+            throw new ArgumentNullException(nameof(onNext));
+        }
+
+        if (onError == null)
+        {
+            throw new ArgumentNullException(nameof(onError));
+        }
+
+        if (onCompleted == null)
+        {
+            throw new ArgumentNullException(nameof(onCompleted));
+        }
+
+        return Signal.CreateSafe<T>(observer => source.Subscribe(
+            value =>
+            {
+                onNext(value);
+                observer.OnNext(value);
+            },
+            error =>
+            {
+                onError(error);
+                observer.OnError(error);
+            },
+            () =>
+            {
+                onCompleted();
+                observer.OnCompleted();
+            }));
+    }
+
+    /// <summary>
+    /// Alias for <see cref="Rescue{T}(IObservable{T}, Func{Exception, IObservable{T}})"/> using the System.Reactive operator name.
+    /// </summary>
+    public static IObservable<T> Catch<T>(this IObservable<T> source, Func<Exception, IObservable<T>> handler) =>
+        source.Rescue(handler);
+
+    /// <summary>
     /// Ignores all source values and only forwards terminal messages.
     /// </summary>
     public static IObservable<T> IgnoreValues<T>(this IObservable<T> source)
@@ -695,6 +824,74 @@ public static partial class LinqMixins
     /// Awaits the first source value, returning a default value when the source is empty.
     /// </summary>
     public static Task<T> FirstOrDefaultAsync<T>(this IObservable<T> source, T defaultValue = default!) => source.FirstOrDefaultCoreAsync(true, defaultValue);
+
+    /// <summary>
+    /// Awaits source completion and returns the last value produced by the source.
+    /// </summary>
+    public static Task<T> ToTask<T>(this IObservable<T> source) => source.ToTask(CancellationToken.None);
+
+    /// <summary>
+    /// Awaits source completion and returns the last value produced by the source.
+    /// </summary>
+    public static Task<T> ToTask<T>(this IObservable<T> source, CancellationToken cancellationToken)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        var completion = new TaskCompletionSource<T>();
+        var seen = false;
+        var last = default(T);
+        var subscription = default(IDisposable);
+        CancellationTokenRegistration cancellationRegistration = default;
+        if (cancellationToken.CanBeCanceled)
+        {
+            cancellationRegistration = cancellationToken.Register(() =>
+            {
+                subscription?.Dispose();
+                completion.TrySetCanceled(cancellationToken);
+            });
+        }
+
+        subscription = source.Subscribe(
+            value =>
+            {
+                seen = true;
+                last = value;
+            },
+            error =>
+            {
+                cancellationRegistration.Dispose();
+                subscription?.Dispose();
+                completion.TrySetException(error);
+            },
+            () =>
+            {
+                cancellationRegistration.Dispose();
+                subscription?.Dispose();
+                if (seen)
+                {
+                    completion.TrySetResult(last!);
+                }
+                else
+                {
+                    completion.TrySetException(new InvalidOperationException("The source completed without producing a value."));
+                }
+            });
+
+        if (completion.Task.IsCompleted)
+        {
+            subscription.Dispose();
+        }
+
+        return completion.Task;
+    }
+
+    /// <summary>
+    /// Identity helper that keeps source-compatible <c>FirstAsync().ToTask()</c> migrations compiling.
+    /// </summary>
+    public static Task<T> ToTask<T>(this Task<T> task) => task ?? throw new ArgumentNullException(nameof(task));
 
     /// <summary>
     /// Collects all values into an array task.
