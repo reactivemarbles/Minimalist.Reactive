@@ -49,20 +49,24 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
-      - name: 'Run: Compile'
-        run: ./build.cmd Compile
+      - name: 'Run: Restore'
+        run: dotnet restore ./src/Minimalist.Reactive.sln
+
+      - name: 'Run: Build'
+        run: dotnet build ./src/Minimalist.Reactive.sln --configuration Release --no-restore --verbosity minimal
 
       
       - name: Tests + Coverage (MTP)
-        shell: bash
-        working-directory: 'src'
+        shell: pwsh
         run: |
-          dotnet test --Minimalist.Reactive.sln \
-            --no-build \
-            --configuration Release \
-            --coverage \
-            --coverage-output-format cobertura \
-            --results-directory ./TestResults
+          dotnet test `
+            --project ./src/Minimalist.Reactive.Tests/Minimalist.Reactive.Tests.csproj `
+            --configuration Release `
+            --no-build `
+            --coverage `
+            --coverage-output-format cobertura `
+            --results-directory ./TestResults `
+            -- --minimum-expected-tests 1
 
       - name: Upload coverage
         uses: actions/upload-artifact@v7
