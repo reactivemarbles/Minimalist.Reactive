@@ -49,6 +49,10 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
+
+      - name: 'Run: Workload Restore'
+        run: dotnet workload restore ./src/Minimalist.Reactive.sln --skip-manifest-update
+
       - name: 'Run: Restore'
         run: dotnet restore ./src/Minimalist.Reactive.sln
 
