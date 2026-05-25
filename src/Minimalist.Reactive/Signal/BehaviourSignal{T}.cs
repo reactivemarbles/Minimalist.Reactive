@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -11,6 +11,7 @@ namespace Minimalist.Reactive.Signals;
 /// BehaviourSignal.
 /// </summary>
 /// <typeparam name="T">The Type.</typeparam>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class BehaviourSignal<T> : ISignal<T>
 {
     private readonly object _observerLock = new();
@@ -55,7 +56,7 @@ public class BehaviourSignal<T> : ISignal<T>
     /// <value>
     ///   <c>true</c> if this instance has observers; otherwise, <c>false</c>.
     /// </value>
-    public bool HasObservers => _outObserver is not EmptyWitness<T> && !_isStopped && !IsDisposed;
+    public bool HasObservers => !ReferenceEquals(_outObserver, EmptyWitness<T>.Instance) && !_isStopped && !IsDisposed;
 
     /// <summary>
     /// Gets a value indicating whether this instance is disposed.
@@ -197,9 +198,9 @@ public class BehaviourSignal<T> : ISignal<T>
                 else
                 {
                     var current = _outObserver;
-                    if (current is EmptyWitness<T>)
+                    if (ReferenceEquals(current, EmptyWitness<T>.Instance))
                     {
-                        _outObserver = new ListWitness<T>(new ImmutableList<IObserver<T>>(new[] { observer }));
+                        _outObserver = observer;
                     }
                     else
                     {

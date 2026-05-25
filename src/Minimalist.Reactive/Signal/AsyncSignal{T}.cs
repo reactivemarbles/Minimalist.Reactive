@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
+// Copyright (c) 2019-2023 ReactiveUI Association Incorporated. All rights reserved.
 // ReactiveUI Association Incorporated licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for full license information.
 
@@ -12,6 +12,7 @@ namespace Minimalist.Reactive.Signals;
 /// </summary>
 /// <typeparam name="T">The Type.</typeparam>
 /// <seealso cref="Minimalist.Reactive.Signals.ISignal&lt;T&gt;" />
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class AsyncSignal<T> : IAwaitSignal<T>
 {
     private readonly object _observerLock = new();
